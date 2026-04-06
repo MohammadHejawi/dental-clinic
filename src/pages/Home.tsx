@@ -980,6 +980,9 @@ const Contact = () => {
                 <div>
                   <h4 className="text-white font-bold text-base mb-1">{tx("conPhone", lang)}</h4>
                   <a href={`tel:${get("phone", "+962796317293")}`} dir="ltr" className="text-slate-400 hover:text-primary transition-colors block">{get("phone", "+962 79 631 7293")}</a>
+                  <a href="tel:027250220" dir="ltr" className="text-slate-400 hover:text-primary transition-colors block mt-1">
+                    {lang === "ar" ? "هاتف أرضي: 027250220" : "Landline: 02 725 0220"}
+                  </a>
                 </div>
               </div>
               {/* Location */}
