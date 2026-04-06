@@ -378,7 +378,7 @@ const Navbar = () => {
           />
           <div>
             <h1 className="text-base font-extrabold text-slate-900 leading-tight tracking-tight">
-              {lang === "ar" ? "د. طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
+              {lang === "ar" ? "الدكتور طارق الهيجاوي" : "Doctor Tareq Al-Hijawi"}
             </h1>
             <p className="text-xs text-primary font-bold tracking-wide">
               {lang === "ar" ? "لطب وتجميل الأسنان" : "Dental & Cosmetic Clinic"}
@@ -516,9 +516,9 @@ const Hero = () => {
             {/* Stats Row */}
             <motion.div variants={fadeInUp} className="flex flex-wrap gap-8 mt-12 justify-center lg:justify-start">
               {[
-                { num: "15+", label: lang === "ar" ? "عاماً خبرة" : "Years Exp." },
-                { num: "5000+", label: lang === "ar" ? "مريض سعيد" : "Happy Patients" },
-                { num: "8", label: lang === "ar" ? "خدمات متكاملة" : "Services" },
+                { num: "21+", label: lang === "ar" ? "عاماً خبرة" : "Years Exp." },
+                 ,
+               { num: "8+", label: lang === "ar" ? "خدمات متكاملة" : "Services" },
               ].map((s, i) => (
                 <div key={i} className="text-center">
                   <p className="text-3xl font-black text-primary">{s.num}</p>
