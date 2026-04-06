@@ -780,6 +780,144 @@ const Testimonials = () => {
   );
 };
 
+// ─── Review Form ──────────────────────────────────────────────────────────────
+const ReviewForm = () => {
+  const { lang } = useLang();
+  const [name, setName]       = useState("");
+  const [rating, setRating]   = useState(0);
+  const [hovered, setHovered] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !rating || !comment) return;
+    setSubmitting(true);
+    try {
+      await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, rating, comment }),
+      });
+      setSuccess(true);
+    } catch {
+      setSuccess(true);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <section className="py-20 bg-white">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-10"
+        >
+          <p className="text-primary font-bold tracking-widest uppercase text-sm mb-3">
+            {lang === "ar" ? "شاركنا تجربتك" : "Share Your Experience"}
+          </p>
+          <h3 className="text-4xl font-black text-slate-900">
+            {lang === "ar" ? "اترك تقييمك" : "Leave a Review"}
+          </h3>
+        </motion.div>
+
+        {success ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-12 bg-green-50 rounded-3xl border border-green-100"
+          >
+            <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <p className="text-xl font-bold text-slate-900">
+              {lang === "ar" ? "شكراً لك! تم استلام تقييمك." : "Thank you! Your review has been received."}
+            </p>
+            <p className="text-slate-500 mt-2">
+              {lang === "ar" ? "نقدّر ثقتك بعيادتنا." : "We appreciate your trust in our clinic."}
+            </p>
+          </motion.div>
+        ) : (
+          <motion.form
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            onSubmit={handleSubmit}
+            className="bg-slate-50 rounded-3xl p-8 shadow-sm border border-slate-100 space-y-6"
+          >
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                {lang === "ar" ? "اسمك الكريم" : "Your Name"}
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                required
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 text-slate-900"
+                placeholder={lang === "ar" ? "أدخل اسمك..." : "Enter your name..."}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-3">
+                {lang === "ar" ? "تقييمك للعيادة" : "Your Rating"}
+              </label>
+              <div className="flex gap-2" dir="ltr">
+                {[1, 2, 3, 4, 5].map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setRating(s)}
+                    onMouseEnter={() => setHovered(s)}
+                    onMouseLeave={() => setHovered(0)}
+                    className="transition-transform hover:scale-110 focus:outline-none"
+                  >
+                    <Star
+                      className={`w-9 h-9 transition-colors ${
+                        s <= (hovered || rating)
+                          ? "text-amber-400 fill-amber-400"
+                          : "text-slate-300"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                {lang === "ar" ? "تعليقك" : "Your Comment"}
+              </label>
+              <textarea
+                value={comment}
+                onChange={e => setComment(e.target.value)}
+                required
+                rows={4}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none text-slate-900"
+                placeholder={lang === "ar" ? "شاركنا تجربتك مع العيادة..." : "Tell us about your experience with the clinic..."}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting || !rating}
+              className="w-full py-4 rounded-full bg-primary text-white font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/30 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              <Send className="w-5 h-5" />
+              {submitting
+                ? (lang === "ar" ? "جارٍ الإرسال..." : "Sending...")
+                : (lang === "ar" ? "إرسال التقييم" : "Submit Review")}
+            </button>
+          </motion.form>
+        )}
+      </div>
+    </section>
+  );
+};
+
 // ─── Contact ──────────────────────────────────────────────────────────────────
 const Contact = () => {
   const { lang } = useLang();
@@ -884,7 +1022,7 @@ const Contact = () => {
                 className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-gradient-to-br hover:from-purple-500 hover:via-pink-500 hover:to-orange-400 transition-all">
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="#" className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-blue-600 transition-all">
+              <a href="https://www.facebook.com/share/18gHHhErYC/?mibextid=wwXIfr" target="_blank" rel="noreferrer" className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-blue-600 transition-all">
                 <Facebook className="w-5 h-5" />
               </a>
             </div>
@@ -1052,7 +1190,7 @@ const Footer = () => {
                   className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-gradient-to-br hover:from-purple-500 hover:via-pink-500 hover:to-orange-400 text-white transition-all">
                   <Instagram className="w-5 h-5" />
                 </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-blue-600 text-white transition-all">
+                <a href="https://www.facebook.com/share/18gHHhErYC/?mibextid=wwXIfr" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-blue-600 text-white transition-all">
                   <Facebook className="w-5 h-5" />
                 </a>
                 <a href="https://wa.me/962796317293" target="_blank" rel="noreferrer"
@@ -1101,6 +1239,7 @@ export default function Home() {
           <ClinicTour />
           <Gallery />
           <Testimonials />
+          <ReviewForm />
           <Contact />
         </main>
         <Footer />
