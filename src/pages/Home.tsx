@@ -102,14 +102,14 @@ const t = {
 
   // About
   abtTag:     { ar: "عن الطبيب",                      en: "About The Doctor" },
-  abtName:    { ar: "الدكتور طارق الهيجاوي",           en: "Dr. Tareq Al-Hijawi" },
-  abtTitle:   { ar: "أخصائي طب وتجميل الأسنان",        en: "Specialist in Dental & Cosmetic Dentistry" },
+  abtName:    { ar: "الدكتور طارق الهيجاوي",           en: "Doctor Tareq Al-Hijawi" },
+  abtTitle:   { ar: " طب و زراعة وتجميل الأسنان",        en: "Dental Implant and Cosmetic Dentistry" },
   abtBio:     {
-    ar: "يحمل الدكتور طارق شهادة البكالوريوس في طب الأسنان، مع تخصص دقيق في طب تجميل الأسنان والتركيبات. عضو الهيئة الأردنية لزراعة الأسنان. عمل مع نخبة من أفضل المراكز الطبية في الأردن والخارج، ويتميز بأسلوبه اللطيف ودقته العالية في العمل، مما يضمن تجربة مريحة وخالية من الألم لجميع مرضاه.",
+    ar: "يحمل الدكتور طارق شهادة البكالوريوس في طب الأسنان، مع تخصص دقيق في طب تجميل الأسنان والتركيبات. عضو الهيئة الأردنية لزراعة الأسنان منذ 2011. عمل مع نخبة من أفضل المراكز الطبية في الأردن والخارج، ويتميز بأسلوبه اللطيف ودقته العالية في العمل، مما يضمن تجربة مريحة وخالية من الألم لجميع مرضاه.",
     en: "Dr. Tareq holds a Bachelor's degree in Dentistry, with advanced specialization in cosmetic dentistry and prosthetics. He is a member of the Jordan Implant Board. He has worked with leading medical centers in Jordan and abroad, and is known for his gentle approach and exceptional precision — ensuring a comfortable, pain-free experience for all patients.",
   },
-  abtCred1: { ar: "عضو الهيئة الأردنية لزراعة الأسنان",          en: "Member – Jordan Implant Board" },
-  abtCred2: { ar: "خبرة تزيد عن 15 عاماً في طب الأسنان",      en: "15+ Years of Dental Experience" },
+  abtCred1: { ar: " عضو الهيئة الأردنية لزراعة الأسنان منذ 2011",          en: "Member – Jordan Implant Board since 2011" },
+  abtCred2: { ar: "خبرة تزيد عن 20 عاماً في طب الأسنان",      en: "20+ Years of Dental Experience" },
   abtCred3: { ar: "آلاف الحالات الناجحة والموثقة",             en: "Thousands of Successful Cases" },
   abtCred4: { ar: "استخدام أحدث تقنيات طب الأسنان الرقمي",    en: "Latest Digital Dentistry Technologies" },
   abtBtn:   { ar: "تواصل مع الطبيب",                          en: "Contact The Doctor" },
@@ -174,8 +174,8 @@ const t = {
 
   // Footer
   footerDesc: {
-    ar: "عيادة متخصصة في طب وتجميل الأسنان تقدم خدمات علاجية وتجميلية بأعلى معايير الجودة والسلامة.",
-    en: "A specialized dental and cosmetic clinic offering treatment and cosmetic services to the highest quality and safety standards.",
+    ar: "عيادة متخصصة في طب و زراعة و تجميل الأسنان تقدم خدمات علاجية وتجميلية بأعلى معايير الجودة والسلامة.",
+    en: "A specialized dental and implant and cosmetic clinic offering treatment and cosmetic services to the highest quality and safety standards.",
   },
   footerLinks:  { ar: "روابط سريعة", en: "Quick Links" },
   footerContact:{ ar: "معلومات التواصل", en: "Contact Info" },
@@ -386,7 +386,7 @@ const Navbar = () => {
               {lang === "ar" ? "الدكتور طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
             </h1>
             <p className="text-xs text-primary font-bold tracking-wide">
-              {lang === "ar" ? "لطب وتجميل الأسنان" : "Dental & Cosmetic Clinic"}
+              {lang === "ar" ? "طب و زراعة وتجميل الأسنان" : "Dental Implant and Cosmetic Clinic"}
             </p>
           </div>
         </a>
@@ -691,7 +691,7 @@ const About = () => {
             <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden border-8 border-white shadow-2xl z-10 max-h-[600px]">
               <img
                 src={resolveImg(get("doctor_image", "gallery-local://doctor-main.jpeg"))}
-                alt={lang === "ar" ? "الدكتور طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
+                alt={lang === "ar" ? "الدكتور طارق الهيجاوي" : "Doctor Tareq Al-Hijawi"}
                 className="w-full h-full object-cover object-top"
               />
             </div>
