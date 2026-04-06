@@ -102,9 +102,11 @@ export default function Admin() {
   // Services
   const [services,        setServices]        = useState<DbService[]>([]);
   const [servicesLoading, setServicesLoading] = useState(false);
+  const [servicesError,   setServicesError]   = useState<string | null>(null);
   const [editingSvc,      setEditingSvc]      = useState<number | "new" | null>(null);
   const [svcForm,         setSvcForm]         = useState<Omit<DbService, "id">>(emptyService());
   const [savingSvc,       setSavingSvc]       = useState(false);
+  const [svcSaveError,    setSvcSaveError]    = useState<string | null>(null);
   const [deletingSvc,     setDeletingSvc]     = useState<number | null>(null);
 
   // Gallery
@@ -143,9 +145,15 @@ export default function Admin() {
 
   const fetchServices = useCallback(async () => {
     setServicesLoading(true);
+    setServicesError(null);
     try {
-      const d = await fetch("/api/services").then(r => r.json());
+      const res = await fetch("/api/services");
+      if (!res.ok) throw new Error(`خطأ في الخادم (${res.status})`);
+      const d = await res.json();
       if (d.success) setServices(d.services);
+      else throw new Error(d.error || "فشل تحميل الخدمات");
+    } catch (err: any) {
+      setServicesError(err?.message || "تعذر الاتصال بالخادم");
     } finally { setServicesLoading(false); }
   }, []);
 
@@ -226,23 +234,36 @@ export default function Admin() {
   const startNewSvc = () => { setSvcForm(emptyService()); setEditingSvc("new"); };
 
   const saveSvc = async () => {
+    if (!svcForm.title_ar || !svcForm.title_en) {
+      setSvcSaveError("الرجاء إدخال اسم الخدمة بالعربي والإنجليزي");
+      setTimeout(() => setSvcSaveError(null), 4000);
+      return;
+    }
     setSavingSvc(true);
+    setSvcSaveError(null);
     try {
       if (editingSvc === "new") {
-        const d = await fetch("/api/services", {
+        const res = await fetch("/api/services", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ password, ...svcForm }),
-        }).then(r => r.json());
+        });
+        const d = await res.json();
         if (d.success) { setServices(prev => [...prev, d.service]); setEditingSvc(null); }
+        else throw new Error(d.error || "فشل الحفظ");
       } else {
-        const d = await fetch(`/api/services/${editingSvc}`, {
+        const res = await fetch(`/api/services/${editingSvc}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ password, ...svcForm }),
-        }).then(r => r.json());
+        });
+        const d = await res.json();
         if (d.success) { setServices(prev => prev.map(s => s.id === editingSvc ? d.service : s)); setEditingSvc(null); }
+        else throw new Error(d.error || "فشل التعديل");
       }
+    } catch (err: any) {
+      setSvcSaveError(err?.message || "تعذر الاتصال بالخادم");
+      setTimeout(() => setSvcSaveError(null), 5000);
     } finally { setSavingSvc(false); }
   };
 
@@ -250,13 +271,16 @@ export default function Admin() {
     if (!confirm("هل أنت متأكد من حذف هذه الخدمة؟")) return;
     setDeletingSvc(id);
     try {
-      await fetch(`/api/services/${id}`, {
+      const res = await fetch(`/api/services/${id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
-      setServices(prev => prev.filter(s => s.id !== id));
-    } finally { setDeletingSvc(null); }
+      const d = await res.json();
+      if (d.success) setServices(prev => prev.filter(s => s.id !== id));
+      else alert("فشل حذف الخدمة: " + (d.error || "خطأ غير معروف"));
+    } catch { alert("تعذر الاتصال بالخادم"); }
+    finally { setDeletingSvc(null); }
   };
 
   const toggleSvcActive = async (svc: DbService) => {
@@ -1043,9 +1067,17 @@ export default function Admin() {
                     </div>
                   </div>
 
+                  {/* Save error */}
+                  {svcSaveError && (
+                    <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl p-3">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      {svcSaveError}
+                    </div>
+                  )}
+
                   {/* Actions */}
                   <div className="flex gap-3 justify-end pt-2">
-                    <button onClick={() => setEditingSvc(null)}
+                    <button onClick={() => { setEditingSvc(null); setSvcSaveError(null); }}
                       className="px-6 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 transition font-semibold text-sm">
                       إلغاء
                     </button>
@@ -1063,6 +1095,21 @@ export default function Admin() {
             {servicesLoading ? (
               <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
+              </div>
+            ) : servicesError ? (
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-start gap-3 text-red-700 text-sm">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong className="block mb-1">فشل تحميل الخدمات</strong>
+                  {servicesError}
+                  <button onClick={fetchServices} className="block mt-2 underline text-red-600 hover:text-red-800">إعادة المحاولة</button>
+                </div>
+              </div>
+            ) : services.length === 0 ? (
+              <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400">
+                <div className="text-4xl mb-3">🦷</div>
+                <p className="font-semibold">لا توجد خدمات بعد</p>
+                <p className="text-sm mt-1">اضغط "إضافة خدمة" لإضافة أول خدمة</p>
               </div>
             ) : (
               <div className="space-y-3">
