@@ -84,11 +84,11 @@ const t = {
 
   // About
   abtTag:     { ar: "عن الطبيب",                      en: "About The Doctor" },
-  abtName:    { ar: "الدكتور طارق الهيجاوي",           en: "Dr. Tariq Al-Hijawi" },
+  abtName:    { ar: "الدكتور طارق الهيجاوي",           en: "Dr. Tareq Al-Hijawi" },
   abtTitle:   { ar: "أخصائي طب وتجميل الأسنان",        en: "Specialist in Dental & Cosmetic Dentistry" },
   abtBio:     {
     ar: "يحمل الدكتور طارق شهادة البكالوريوس في طب الأسنان، مع تخصص دقيق في طب تجميل الأسنان والتركيبات. عضو الهيئة الأردنية لزراعة الأسنان. عمل مع نخبة من أفضل المراكز الطبية في الأردن والخارج، ويتميز بأسلوبه اللطيف ودقته العالية في العمل، مما يضمن تجربة مريحة وخالية من الألم لجميع مرضاه.",
-    en: "Dr. Tariq holds a Bachelor's degree in Dentistry, with advanced specialization in cosmetic dentistry and prosthetics. He is a member of the Jordan Implant Board. He has worked with leading medical centers in Jordan and abroad, and is known for his gentle approach and exceptional precision — ensuring a comfortable, pain-free experience for all patients.",
+    en: "Dr. Tareq holds a Bachelor's degree in Dentistry, with advanced specialization in cosmetic dentistry and prosthetics. He is a member of the Jordan Implant Board. He has worked with leading medical centers in Jordan and abroad, and is known for his gentle approach and exceptional precision — ensuring a comfortable, pain-free experience for all patients.",
   },
   abtCred1: { ar: "عضو الهيئة الأردنية لزراعة الأسنان",          en: "Member – Jordan Implant Board" },
   abtCred2: { ar: "خبرة تزيد عن 15 عاماً في طب الأسنان",      en: "15+ Years of Dental Experience" },
@@ -103,8 +103,8 @@ const t = {
     ar: "عيادتنا مجهزة بأحدث الأجهزة الطبية في بيئة نظيفة ومريحة تجعل زيارتك تجربة إيجابية من البداية للنهاية.",
     en: "Our clinic is equipped with the latest medical devices in a clean and comfortable environment that makes your visit a positive experience from start to finish.",
   },
-  clinicImg1Caption: { ar: "الدكتور طارق في غرفة العلاج",  en: "Dr. Tariq in the Treatment Room" },
-  clinicImg2Caption: { ar: "استقبال عيادة الدكتور طارق",   en: "Dr. Tariq Al-Hijawi Clinic Reception" },
+  clinicImg1Caption: { ar: "الدكتور طارق في غرفة العلاج",  en: "Dr. Tareq in the Treatment Room" },
+  clinicImg2Caption: { ar: "استقبال عيادة الدكتور طارق",   en: "Dr. Tareq Al-Hijawi Clinic Reception" },
   clinicImg3Caption: { ar: "مدخل العيادة الأنيق",          en: "Elegant Clinic Entrance" },
 
   // Gallery
@@ -217,7 +217,7 @@ const Navbar = () => {
           />
           <div>
             <h1 className="text-base font-extrabold text-slate-900 leading-tight">
-              {lang === "ar" ? "د. طارق الهيجاوي" : "Dr. Tariq Al-Hijawi"}
+              {lang === "ar" ? "د. طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
             </h1>
             <p className="text-xs text-primary font-semibold">
               {lang === "ar" ? "لطب وتجميل الأسنان" : "Dental & Cosmetic Clinic"}
@@ -505,7 +505,7 @@ const About = () => {
             <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden border-8 border-white shadow-2xl z-10 max-h-[600px]">
               <img
                 src={`${import.meta.env.BASE_URL}images/doctor-main.jpeg`}
-                alt={lang === "ar" ? "الدكتور طارق الهيجاوي" : "Dr. Tariq Al-Hijawi"}
+                alt={lang === "ar" ? "الدكتور طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
                 className="w-full h-full object-cover object-top"
               />
             </div>
@@ -696,21 +696,21 @@ const Testimonials = () => {
       nameAr: "سارة أحمد", nameEn: "Sara Ahmed",
       treatAr: "تبييض الأسنان", treatEn: "Teeth Whitening",
       textAr: "تجربة رائعة جداً! الدكتور طارق يده خفيفة جداً والنتيجة كانت مبهرة من أول جلسة. العيادة نظيفة والتعامل راقٍ.",
-      textEn: "Amazing experience! Dr. Tariq has a very gentle touch and the results were stunning from the first session.",
+      textEn: "Amazing experience! Dr. Tareq has a very gentle touch and the results were stunning from the first session.",
       initials: "س.أ", rating: 5,
     },
     {
       nameAr: "محمد محمود", nameEn: "Mohammed Mahmoud",
       treatAr: "زراعة الأسنان", treatEn: "Dental Implants",
       textAr: "كنت خائفاً جداً من فكرة الزراعة، لكن الدكتور طمأنني وشرح لي كل الخطوات. العملية تمت بدون ألم.",
-      textEn: "I was very scared about implants, but Dr. Tariq reassured me and explained every step. Painless and natural.",
+      textEn: "I was very scared about implants, but Dr. Tareq reassured me and explained every step. Painless and natural.",
       initials: "م.م", rating: 5,
     },
     {
       nameAr: "ديما خالد", nameEn: "Dima Khalid",
       treatAr: "ابتسامة هوليود", treatEn: "Hollywood Smile",
       textAr: "غيّرت ابتسامتي حياتي! شكراً للدكتور طارق على الدقة المتناهية والاهتمام بأدق التفاصيل.",
-      textEn: "My smile changed my life! Thank you Dr. Tariq for your incredible precision and attention to detail.",
+      textEn: "My smile changed my life! Thank you Dr. Tareq for your incredible precision and attention to detail.",
       initials: "د.خ", rating: 5,
     },
     {
@@ -724,7 +724,7 @@ const Testimonials = () => {
       nameAr: "نور إبراهيم", nameEn: "Nour Ibrahim",
       treatAr: "تقويم الأسنان", treatEn: "Orthodontics",
       textAr: "بعد سنتين من التقويم مع الدكتور طارق، أسناني أصبحت منتظمة تماماً.",
-      textEn: "After two years of braces with Dr. Tariq, my teeth are perfectly aligned.",
+      textEn: "After two years of braces with Dr. Tareq, my teeth are perfectly aligned.",
       initials: "ن.إ", rating: 5,
     },
   ];
@@ -964,7 +964,7 @@ const Contact = () => {
 
     const text = lang === "ar"
       ? `مرحباً دكتور طارق 👋\n\nطلب حجز موعد جديد:\n👤 الاسم: ${name}\n📞 الهاتف: ${phone}\n🦷 الخدمة: ${service || "لم يُحدد"}\n💬 ملاحظات: ${msg || "لا توجد"}`
-      : `Hello Dr. Tariq 👋\n\nNew appointment request:\n👤 Name: ${name}\n📞 Phone: ${phone}\n🦷 Service: ${service || "Not specified"}\n💬 Notes: ${msg || "None"}`;
+      : `Hello Dr. Tareq 👋\n\nNew appointment request:\n👤 Name: ${name}\n📞 Phone: ${phone}\n🦷 Service: ${service || "Not specified"}\n💬 Notes: ${msg || "None"}`;
 
     const clinicPhone = get("phone", "+962796317293").replace(/[^0-9]/g, "");
     const waUrl = `https://wa.me/${clinicPhone}?text=${encodeURIComponent(text)}`;
@@ -1184,7 +1184,7 @@ const Footer = () => {
               />
               <div>
                 <h3 className="text-white font-extrabold text-base leading-tight">
-                  {lang === "ar" ? "د. طارق الهيجاوي" : "Dr. Tariq Al-Hijawi"}
+                  {lang === "ar" ? "د. طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
                 </h3>
                 <p className="text-primary text-xs font-semibold">
                   {lang === "ar" ? "لطب وتجميل الأسنان" : "Dental & Cosmetic Clinic"}
@@ -1237,7 +1237,7 @@ const Footer = () => {
 
         <div className="border-t border-white/10 pt-8 text-center text-sm">
           <p>
-            © {year} {lang === "ar" ? "عيادة الدكتور طارق الهيجاوي. " : "Dr. Tariq Al-Hijawi Dental Clinic. "}
+            © {year} {lang === "ar" ? "عيادة الدكتور طارق الهيجاوي. " : "Dr. Tareq Al-Hijawi Dental Clinic. "}
             {tx("footerRights", lang)}.
           </p>
         </div>
@@ -1257,7 +1257,7 @@ export default function Home() {
     document.title =
       lang === "ar"
         ? "عيادة الدكتور طارق الهيجاوي لطب وتجميل الأسنان"
-        : "Dr. Tariq Al-Hijawi – Dental & Cosmetic Clinic";
+        : "Dr. Tareq Al-Hijawi – Dental & Cosmetic Clinic";
   }, [lang]);
 
   return (
