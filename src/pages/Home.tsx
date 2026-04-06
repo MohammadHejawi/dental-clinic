@@ -180,6 +180,67 @@ const t = {
 
 const tx = (key: keyof typeof t, lang: Lang) => t[key][lang];
 
+// ─── Clinic SVG Logo ──────────────────────────────────────────────────────────
+const ClinicLogo = ({ size = 52, white = false }: { size?: number; white?: boolean }) => {
+  const uid = React.useId().replace(/:/g, "x");
+  const stroke = white
+    ? [{ offset: "0%", color: "#ffffff" }, { offset: "100%", color: "#bfdbfe" }]
+    : [{ offset: "0%", color: "#7dd3fc" }, { offset: "50%", color: "#0ea5e9" }, { offset: "100%", color: "#1e40af" }];
+  const fillStart = white ? "rgba(255,255,255,0.18)" : "rgba(186,230,255,0.42)";
+  const fillEnd   = white ? "rgba(255,255,255,0.04)" : "rgba(147,197,253,0.10)";
+
+  return (
+    <svg width={size} height={size} viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id={`lg-a-${uid}`} x1="0" y1="0" x2="1" y2="1">
+          {stroke.map((s, i) => <stop key={i} offset={s.offset} stopColor={s.color} />)}
+        </linearGradient>
+        <linearGradient id={`lg-b-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={fillStart} />
+          <stop offset="100%" stopColor={fillEnd} />
+        </linearGradient>
+        <filter id={`glow-${uid}`}>
+          <feGaussianBlur stdDeviation="1.2" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
+
+      {/* ── Tooth body ── */}
+      <path
+        d="M7,23 Q5,9 15,5 Q19.5,3 24,5.5 Q26,3 30.5,3 Q39,5 46,11 Q48,17 45,25 Q43,33 38,41 Q35,47 32,53 Q30,57 26,56 Q22,57 20,53 Q17,47 14,41 Q9,33 7,23 Z"
+        fill={`url(#lg-b-${uid})`}
+        stroke={`url(#lg-a-${uid})`}
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+      />
+
+      {/* ── Cusp groove (central vertical line) ── */}
+      <line x1="26" y1="5.5" x2="25" y2="19"
+        stroke={`url(#lg-a-${uid})`} strokeWidth="1.4" strokeLinecap="round" opacity="0.55" />
+
+      {/* ── Cervical highlight curve ── */}
+      <path d="M13,38 Q19.5,34.5 26,35.5 Q32.5,34.5 39,38"
+        fill="none" stroke={`url(#lg-a-${uid})`} strokeWidth="1.4" strokeLinecap="round" opacity="0.6" />
+
+      {/* ── Implant screw threads (tapered bottom) ── */}
+      <line x1="20" y1="43" x2="32" y2="43" stroke={`url(#lg-a-${uid})`} strokeWidth="1.9" strokeLinecap="round" />
+      <line x1="21" y1="46.5" x2="31" y2="46.5" stroke={`url(#lg-a-${uid})`} strokeWidth="1.7" strokeLinecap="round" />
+      <line x1="22" y1="50" x2="30" y2="50" stroke={`url(#lg-a-${uid})`} strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="23" y1="53.5" x2="29" y2="53.5" stroke={`url(#lg-a-${uid})`} strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="24.5" y1="56.5" x2="27.5" y2="56.5" stroke={`url(#lg-a-${uid})`} strokeWidth="1" strokeLinecap="round" />
+
+      {/* ── Dental probe tool (diagonal) ── */}
+      <line x1="4" y1="57" x2="48" y2="6"
+        stroke={`url(#lg-a-${uid})`} strokeWidth="2.2" strokeLinecap="round"
+        opacity="0.85" filter={`url(#glow-${uid})`} />
+      {/* Probe tip ball */}
+      <circle cx="48" cy="6" r="3" fill={`url(#lg-a-${uid})`} />
+      {/* Probe handle cap */}
+      <path d="M 1,59 L 6,54 Q 7.5,55.5 6.5,57.5 Z" fill={`url(#lg-a-${uid})`} opacity="0.85" />
+    </svg>
+  );
+};
+
 // ─── Dynamic Text Hook (DB overrides static text) ────────────────────────────
 const useTx = () => {
   const { lang } = useLang();
@@ -233,17 +294,19 @@ const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <img
-            src={`${import.meta.env.BASE_URL}images/clinic-logo.jpeg`}
-            alt="عيادة الدكتور طارق الهيجاوي"
-            className="w-14 h-14 object-contain rounded-xl bg-white shadow p-1"
-          />
+        <a href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity group">
+          <div className="relative flex-shrink-0">
+            <div className={cn(
+              "absolute inset-0 rounded-2xl transition-all duration-300 blur-md opacity-0 group-hover:opacity-60",
+              scrolled ? "bg-blue-200" : "bg-sky-300"
+            )} />
+            <ClinicLogo size={50} />
+          </div>
           <div>
-            <h1 className="text-base font-extrabold text-slate-900 leading-tight">
+            <h1 className="text-base font-extrabold text-slate-900 leading-tight tracking-tight">
               {lang === "ar" ? "د. طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
             </h1>
-            <p className="text-xs text-primary font-semibold">
+            <p className="text-xs text-primary font-bold tracking-wide">
               {lang === "ar" ? "لطب وتجميل الأسنان" : "Dental & Cosmetic Clinic"}
             </p>
           </div>
@@ -1231,16 +1294,12 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-5">
-              <img
-                src={`${import.meta.env.BASE_URL}images/clinic-logo.jpeg`}
-                alt="logo"
-                className="w-14 h-14 object-contain rounded-xl bg-white/10 p-1.5"
-              />
+              <ClinicLogo size={48} white />
               <div>
                 <h3 className="text-white font-extrabold text-base leading-tight">
                   {lang === "ar" ? "د. طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
                 </h3>
-                <p className="text-primary text-xs font-semibold">
+                <p className="text-sky-400 text-xs font-semibold">
                   {lang === "ar" ? "لطب وتجميل الأسنان" : "Dental & Cosmetic Clinic"}
                 </p>
               </div>
