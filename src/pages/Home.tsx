@@ -180,63 +180,139 @@ const t = {
 
 const tx = (key: keyof typeof t, lang: Lang) => t[key][lang];
 
-// ─── Clinic SVG Logo ──────────────────────────────────────────────────────────
+// ─── Clinic SVG Logo (3-D metallic — mirrors the clinic's original logo) ──────
 const ClinicLogo = ({ size = 52, white = false }: { size?: number; white?: boolean }) => {
   const uid = React.useId().replace(/:/g, "x");
-  const stroke = white
-    ? [{ offset: "0%", color: "#ffffff" }, { offset: "100%", color: "#bfdbfe" }]
-    : [{ offset: "0%", color: "#7dd3fc" }, { offset: "50%", color: "#0ea5e9" }, { offset: "100%", color: "#1e40af" }];
-  const fillStart = white ? "rgba(255,255,255,0.18)" : "rgba(186,230,255,0.42)";
-  const fillEnd   = white ? "rgba(255,255,255,0.04)" : "rgba(147,197,253,0.10)";
+
+  /* The full molar crown + single-root path ---------------------------------- */
+  const TOOTH = "M30,78 C27,55 33,22 54,13 C63,8 71,12 78,17 C85,12 93,8 102,13 C123,22 129,55 126,78 C123,92 118,104 114,116 C110,128 107,140 105,153 C103,161 100,165 78,164 C56,165 53,161 51,153 C49,140 46,128 42,116 C38,104 33,92 30,78 Z";
+
+  if (white) {
+    return (
+      <svg width={size} height={size} viewBox="0 0 160 200" fill="none">
+        <path d={TOOTH} fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.85)" strokeWidth="3" />
+        <path d="M88,14 C104,22 116,36 120,58" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M85,55 C100,62 112,76 114,96" fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth="1.8" strokeLinecap="round"/>
+        {[130,139,148,156,163,169].map((y,i)=>{const w=22-i*2.5; return(
+          <path key={i} d={`M${78+2-w},${y-2} Q${78+2},${y+3} ${78+2+w},${y-2}`} fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth={2.2-i*0.2} strokeLinecap="round"/>
+        );})}
+        <line x1="10" y1="195" x2="155" y2="12" stroke="rgba(255,255,255,0.8)" strokeWidth="4.5" strokeLinecap="round"/>
+        <circle cx="155" cy="12" r="6.5" fill="rgba(255,255,255,0.85)"/>
+        <ellipse cx="12" cy="192" rx="8" ry="4.5" fill="rgba(255,255,255,0.75)" transform="rotate(-47 12 192)"/>
+      </svg>
+    );
+  }
 
   return (
-    <svg width={size} height={size} viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width={size} height={size} viewBox="0 0 160 200" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id={`lg-a-${uid}`} x1="0" y1="0" x2="1" y2="1">
-          {stroke.map((s, i) => <stop key={i} offset={s.offset} stopColor={s.color} />)}
+        {/* ── Brushed steel / radial metallic blue ── */}
+        <radialGradient id={`met-${uid}`} cx="36%" cy="30%" r="68%" fx="30%" fy="25%">
+          <stop offset="0%"   stopColor="#e2f3fb"/>
+          <stop offset="12%"  stopColor="#a8d8f0"/>
+          <stop offset="28%"  stopColor="#5aaee0"/>
+          <stop offset="48%"  stopColor="#2979be"/>
+          <stop offset="65%"  stopColor="#1a5c92"/>
+          <stop offset="80%"  stopColor="#0e3d6a"/>
+          <stop offset="100%" stopColor="#082848"/>
+        </radialGradient>
+
+        {/* ── Subtle inner shine overlay ── */}
+        <linearGradient id={`shine-${uid}`} x1="0" y1="0" x2="0.6" y2="1">
+          <stop offset="0%"   stopColor="white" stopOpacity="0.28"/>
+          <stop offset="55%"  stopColor="white" stopOpacity="0.06"/>
+          <stop offset="100%" stopColor="white" stopOpacity="0"/>
         </linearGradient>
-        <linearGradient id={`lg-b-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={fillStart} />
-          <stop offset="100%" stopColor={fillEnd} />
+
+        {/* ── Gray gradient for outline & threads ── */}
+        <linearGradient id={`gry-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#cccccc"/>
+          <stop offset="100%" stopColor="#929292"/>
         </linearGradient>
-        <filter id={`glow-${uid}`}>
-          <feGaussianBlur stdDeviation="1.2" result="blur" />
-          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+
+        {/* ── Probe gradient (metallic rod) ── */}
+        <linearGradient id={`rod-${uid}`} x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#707070"/>
+          <stop offset="35%"  stopColor="#d8d8d8"/>
+          <stop offset="60%"  stopColor="#ececec"/>
+          <stop offset="100%" stopColor="#a0a0a0"/>
+        </linearGradient>
+
+        {/* ── Clip: left 62% = metallic filled portion ── */}
+        <clipPath id={`lft-${uid}`}>
+          <rect x="0" y="0" width="96" height="200"/>
+        </clipPath>
+
+        {/* ── Drop shadow for depth ── */}
+        <filter id={`shd-${uid}`} x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="2" dy="3" stdDeviation="3.5" floodColor="#1a4a7a" floodOpacity="0.35"/>
         </filter>
       </defs>
 
-      {/* ── Tooth body ── */}
-      <path
-        d="M7,23 Q5,9 15,5 Q19.5,3 24,5.5 Q26,3 30.5,3 Q39,5 46,11 Q48,17 45,25 Q43,33 38,41 Q35,47 32,53 Q30,57 26,56 Q22,57 20,53 Q17,47 14,41 Q9,33 7,23 Z"
-        fill={`url(#lg-b-${uid})`}
-        stroke={`url(#lg-a-${uid})`}
-        strokeWidth="2.5"
-        strokeLinejoin="round"
+      {/* ══════════════════════════════════════════════
+          1. GRAY OUTLINE — full tooth silhouette
+      ══════════════════════════════════════════════ */}
+      <path d={TOOTH} fill="none" stroke={`url(#gry-${uid})`} strokeWidth="3.2" strokeLinejoin="round"/>
+
+      {/* ══════════════════════════════════════════════
+          2. METALLIC BLUE FILL — left clipped portion
+      ══════════════════════════════════════════════ */}
+      <g clipPath={`url(#lft-${uid})`} filter={`url(#shd-${uid})`}>
+        <path d={TOOTH} fill={`url(#met-${uid})`}/>
+        {/* Shine overlay */}
+        <path d={TOOTH} fill={`url(#shine-${uid})`}/>
+      </g>
+
+      {/* ══════════════════════════════════════════════
+          3. DEPTH CURVES — inside right outline area
+             (natural tooth cusp highlights)
+      ══════════════════════════════════════════════ */}
+      <path d="M87,14 C103,22 117,38 121,60"
+        fill="none" stroke={`url(#gry-${uid})`} strokeWidth="2.4" strokeLinecap="round" opacity="0.9"/>
+      <path d="M84,58 C100,65 112,80 115,100"
+        fill="none" stroke={`url(#gry-${uid})`} strokeWidth="2.0" strokeLinecap="round" opacity="0.65"/>
+
+      {/* ══════════════════════════════════════════════
+          4. IMPLANT SCREW THREADS (right root)
+             Each thread = a concave arc, tapering down
+      ══════════════════════════════════════════════ */}
+      {[
+        {y:132, w:24}, {y:141, w:21}, {y:150, w:18},
+        {y:158, w:15}, {y:165, w:12}, {y:171, w:9}, {y:176, w:6},
+      ].map(({y, w}, i) => (
+        <path
+          key={i}
+          d={`M ${80-w},${y-2} Q 80,${y+4} ${80+w},${y-2}`}
+          fill="none"
+          stroke={`url(#gry-${uid})`}
+          strokeWidth={2.6 - i * 0.18}
+          strokeLinecap="round"
+        />
+      ))}
+
+      {/* ══════════════════════════════════════════════
+          5. DENTAL PROBE TOOL
+             — diagonal shaft (lower-left → upper-right)
+             — metallic ball tip
+             — handle cap
+      ══════════════════════════════════════════════ */}
+      {/* Shaft */}
+      <line
+        x1="10" y1="192"
+        x2="152" y2="14"
+        stroke={`url(#rod-${uid})`}
+        strokeWidth="5.5"
+        strokeLinecap="round"
       />
-
-      {/* ── Cusp groove (central vertical line) ── */}
-      <line x1="26" y1="5.5" x2="25" y2="19"
-        stroke={`url(#lg-a-${uid})`} strokeWidth="1.4" strokeLinecap="round" opacity="0.55" />
-
-      {/* ── Cervical highlight curve ── */}
-      <path d="M13,38 Q19.5,34.5 26,35.5 Q32.5,34.5 39,38"
-        fill="none" stroke={`url(#lg-a-${uid})`} strokeWidth="1.4" strokeLinecap="round" opacity="0.6" />
-
-      {/* ── Implant screw threads (tapered bottom) ── */}
-      <line x1="20" y1="43" x2="32" y2="43" stroke={`url(#lg-a-${uid})`} strokeWidth="1.9" strokeLinecap="round" />
-      <line x1="21" y1="46.5" x2="31" y2="46.5" stroke={`url(#lg-a-${uid})`} strokeWidth="1.7" strokeLinecap="round" />
-      <line x1="22" y1="50" x2="30" y2="50" stroke={`url(#lg-a-${uid})`} strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="23" y1="53.5" x2="29" y2="53.5" stroke={`url(#lg-a-${uid})`} strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="24.5" y1="56.5" x2="27.5" y2="56.5" stroke={`url(#lg-a-${uid})`} strokeWidth="1" strokeLinecap="round" />
-
-      {/* ── Dental probe tool (diagonal) ── */}
-      <line x1="4" y1="57" x2="48" y2="6"
-        stroke={`url(#lg-a-${uid})`} strokeWidth="2.2" strokeLinecap="round"
-        opacity="0.85" filter={`url(#glow-${uid})`} />
-      {/* Probe tip ball */}
-      <circle cx="48" cy="6" r="3" fill={`url(#lg-a-${uid})`} />
-      {/* Probe handle cap */}
-      <path d="M 1,59 L 6,54 Q 7.5,55.5 6.5,57.5 Z" fill={`url(#lg-a-${uid})`} opacity="0.85" />
+      {/* Ball tip */}
+      <circle cx="152" cy="14" r="7.5"
+        fill="#d8d8d8" stroke="#aaaaaa" strokeWidth="1.5"/>
+      <circle cx="150" cy="12" r="3"
+        fill="white" opacity="0.55"/>
+      {/* Handle end cap */}
+      <ellipse cx="11" cy="190" rx="8.5" ry="5"
+        fill={`url(#rod-${uid})`}
+        transform="rotate(-52 11 190)"/>
     </svg>
   );
 };
