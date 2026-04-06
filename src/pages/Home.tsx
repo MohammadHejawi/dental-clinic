@@ -23,8 +23,21 @@ import {
   Instagram,
   Facebook,
   Globe,
+  Heart,
+  Zap,
+  Shield,
+  Award,
+  Crown,
 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+
+// ─── Icon Map (for dynamic services) ─────────────────────────────────────────
+const ICON_MAP: Record<string, React.ElementType> = {
+  Smile, ShieldCheck, Layers, Droplets, Activity, Sparkles, Star,
+  CheckCircle2, Stethoscope, Heart, Zap, Shield, Award, Crown,
+  Phone, Globe,
+};
 
 // ─── Language Context ────────────────────────────────────────────────────────
 type Lang = "ar" | "en";
@@ -167,6 +180,16 @@ const t = {
 
 const tx = (key: keyof typeof t, lang: Lang) => t[key][lang];
 
+// ─── Dynamic Text Hook (DB overrides static text) ────────────────────────────
+const useTx = () => {
+  const { lang } = useLang();
+  const { content } = useSiteContent();
+  return (key: keyof typeof t, overrideLang?: Lang) => {
+    const l = overrideLang ?? lang;
+    return (content[`${String(key)}_${l}`] as string | undefined) ?? t[key]?.[l] ?? "";
+  };
+};
+
 // ─── Animation Variants ───────────────────────────────────────────────────────
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -180,6 +203,7 @@ const stagger = {
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 const Navbar = () => {
   const { lang, setLang } = useLang();
+  const tx = useTx();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -312,6 +336,7 @@ const Navbar = () => {
 const Hero = () => {
   const { lang } = useLang();
   const { get } = useSiteContent();
+  const tx = useTx();
   return (
     <section id="hero" className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-gradient-to-br from-white via-blue-50 to-sky-100">
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-200 rounded-full mix-blend-multiply filter blur-[100px] opacity-40" />
@@ -375,7 +400,7 @@ const Hero = () => {
           >
             <div className="relative rounded-[3rem] overflow-hidden shadow-2xl shadow-blue-900/15 border-8 border-white">
               <img
-                src={`${import.meta.env.BASE_URL}images/hero-dentist.png`}
+                src={resolveImg(get("hero_image", "gallery-local://hero-dentist.png"))}
                 alt={lang === "ar" ? "عيادة الأسنان" : "Dental Clinic"}
                 className="w-full h-full object-cover aspect-[4/3]"
               />
@@ -407,18 +432,19 @@ const Hero = () => {
 };
 
 // ─── Services ─────────────────────────────────────────────────────────────────
+type DbService = { id: number; title_ar: string; title_en: string; desc_ar: string; desc_en: string; icon: string; color: string };
+
 const Services = () => {
   const { lang } = useLang();
-  const services = [
-    { titleKey: "svc1Title", descKey: "svc1Desc", icon: Smile,       color: "from-sky-400 to-blue-500" },
-    { titleKey: "svc2Title", descKey: "svc2Desc", icon: ShieldCheck,  color: "from-blue-500 to-indigo-600" },
-    { titleKey: "svc3Title", descKey: "svc3Desc", icon: Layers,       color: "from-violet-400 to-violet-600" },
-    { titleKey: "svc4Title", descKey: "svc4Desc", icon: Droplets,     color: "from-cyan-400 to-cyan-600" },
-    { titleKey: "svc5Title", descKey: "svc5Desc", icon: Activity,     color: "from-sky-500 to-sky-700" },
-    { titleKey: "svc6Title", descKey: "svc6Desc", icon: Stethoscope,  color: "from-blue-600 to-blue-800" },
-    { titleKey: "svc7Title", descKey: "svc7Desc", icon: Sparkles,     color: "from-amber-400 to-orange-500" },
-    { titleKey: "svc8Title", descKey: "svc8Desc", icon: CheckCircle2, color: "from-emerald-400 to-emerald-600" },
-  ] as const;
+  const tx = useTx();
+  const [services, setServices] = useState<DbService[]>([]);
+
+  useEffect(() => {
+    fetch("/api/services")
+      .then(r => r.json())
+      .then(d => { if (d.success && d.services?.length > 0) setServices(d.services); })
+      .catch(() => {});
+  }, []);
 
   return (
     <section id="services" className="py-24 bg-white relative">
@@ -430,22 +456,29 @@ const Services = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {services.map((svc, i) => (
-            <motion.div
-              key={i}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-40px" }}
-              variants={fadeInUp}
-              className="group bg-slate-50 hover:bg-white rounded-3xl p-7 border border-transparent hover:border-slate-100 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 cursor-default"
-            >
-              <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-white mb-5 shadow-lg group-hover:scale-110 transition-transform bg-gradient-to-br", svc.color)}>
-                <svc.icon className="w-7 h-7" />
-              </div>
-              <h4 className="text-lg font-bold text-slate-900 mb-3">{tx(svc.titleKey, lang)}</h4>
-              <p className="text-slate-500 text-sm leading-relaxed">{tx(svc.descKey, lang)}</p>
-            </motion.div>
-          ))}
+          {services.map((svc, i) => {
+            const IconComp = ICON_MAP[svc.icon] ?? Star;
+            return (
+              <motion.div
+                key={svc.id ?? i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-40px" }}
+                variants={fadeInUp}
+                className="group bg-slate-50 hover:bg-white rounded-3xl p-7 border border-transparent hover:border-slate-100 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 cursor-default"
+              >
+                <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-white mb-5 shadow-lg group-hover:scale-110 transition-transform bg-gradient-to-br", svc.color)}>
+                  <IconComp className="w-7 h-7" />
+                </div>
+                <h4 className="text-lg font-bold text-slate-900 mb-3">
+                  {lang === "ar" ? svc.title_ar : svc.title_en}
+                </h4>
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  {lang === "ar" ? svc.desc_ar : svc.desc_en}
+                </p>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -456,6 +489,7 @@ const Services = () => {
 const About = () => {
   const { lang } = useLang();
   const { get } = useSiteContent();
+  const tx = useTx();
   const creds = ["abtCred1", "abtCred2", "abtCred3", "abtCred4"] as const;
 
   return (
@@ -504,7 +538,7 @@ const About = () => {
             <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-sky-200 rounded-full blur-3xl transform scale-110" />
             <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden border-8 border-white shadow-2xl z-10 max-h-[600px]">
               <img
-                src={`${import.meta.env.BASE_URL}images/doctor-main.jpeg`}
+                src={resolveImg(get("doctor_image", "gallery-local://doctor-main.jpeg"))}
                 alt={lang === "ar" ? "الدكتور طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
                 className="w-full h-full object-cover object-top"
               />
@@ -531,70 +565,74 @@ const About = () => {
 };
 
 // ─── Clinic Tour ──────────────────────────────────────────────────────────────
+type DbClinicImage = { id: number; image_url: string; caption_ar: string; caption_en: string; sort_order: number };
+
 const ClinicTour = () => {
   const { lang } = useLang();
+  const tx = useTx();
+  const [photos, setPhotos] = useState<DbClinicImage[]>([]);
 
-  const photos = [
-    { img: "doctor-main.jpeg",       captionKey: "clinicImg1Caption" as const },
-    { img: "clinic-reception-1.jpeg", captionKey: "clinicImg2Caption" as const },
-    { img: "clinic-reception-2.jpeg", captionKey: "clinicImg3Caption" as const },
-  ];
+  useEffect(() => {
+    fetch("/api/clinic-images")
+      .then(r => r.json())
+      .then(d => { if (d.success && d.images?.length > 0) setPhotos(d.images); })
+      .catch(() => {});
+  }, []);
+
+  if (photos.length === 0) return null;
 
   return (
     <section className="py-24 bg-gradient-to-b from-sky-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <p className="text-primary font-bold tracking-widest uppercase text-sm mb-3">{tx("clinicTag", lang)}</p>
           <h3 className="text-4xl md:text-5xl font-black text-slate-900 mb-6">{tx("clinicTitle", lang)}</h3>
           <p className="text-lg text-slate-600">{tx("clinicSub", lang)}</p>
         </div>
 
-        {/* Photos grid: large left + two stacked right */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Large photo — doctor in treatment room */}
+          {/* First photo — large */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.6 }}
             className="relative rounded-3xl overflow-hidden shadow-xl group"
           >
             <div className="aspect-[4/5]">
-              <img
-                src={`${import.meta.env.BASE_URL}images/${photos[0].img}`}
-                alt={tx(photos[0].captionKey, lang)}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
+              <img src={resolveImg(photos[0].image_url)}
+                alt={lang === "ar" ? photos[0].caption_ar : photos[0].caption_en}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent" />
-            <div className={cn("absolute bottom-6 px-6", lang === "ar" ? "right-0 text-right" : "left-0 text-left")}>
-              <p className="text-white font-bold text-lg">{tx(photos[0].captionKey, lang)}</p>
-            </div>
+            {(photos[0].caption_ar || photos[0].caption_en) && (
+              <div className={cn("absolute bottom-6 px-6", lang === "ar" ? "right-0 text-right" : "left-0 text-left")}>
+                <p className="text-white font-bold text-lg">
+                  {lang === "ar" ? photos[0].caption_ar : photos[0].caption_en}
+                </p>
+              </div>
+            )}
           </motion.div>
 
-          {/* Two stacked reception photos */}
+          {/* Rest of photos stacked */}
           <div className="flex flex-col gap-6">
             {photos.slice(1).map((p, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: (i + 1) * 0.15 }}
+              <motion.div key={p.id}
+                initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }} transition={{ duration: 0.6, delay: (i + 1) * 0.15 }}
                 className="relative rounded-3xl overflow-hidden shadow-xl group flex-1"
               >
                 <div className="aspect-[16/9]">
-                  <img
-                    src={`${import.meta.env.BASE_URL}images/${p.img}`}
-                    alt={tx(p.captionKey, lang)}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
+                  <img src={resolveImg(p.image_url)}
+                    alt={lang === "ar" ? p.caption_ar : p.caption_en}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent" />
-                <div className={cn("absolute bottom-4 px-5", lang === "ar" ? "right-0 text-right" : "left-0 text-left")}>
-                  <p className="text-white font-bold text-base">{tx(p.captionKey, lang)}</p>
-                </div>
+                {(p.caption_ar || p.caption_en) && (
+                  <div className={cn("absolute bottom-4 px-5", lang === "ar" ? "right-0 text-right" : "left-0 text-left")}>
+                    <p className="text-white font-bold text-base">
+                      {lang === "ar" ? p.caption_ar : p.caption_en}
+                    </p>
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>
@@ -605,14 +643,25 @@ const ClinicTour = () => {
 };
 
 // ─── Gallery ──────────────────────────────────────────────────────────────────
+type DbGalleryItem = { id: number; title_ar: string; title_en: string; image_url: string };
+
+const BASE = import.meta.env.BASE_URL;
+const resolveImg = (url: string) =>
+  url.startsWith("gallery-local://")
+    ? `${BASE}images/${url.replace("gallery-local://", "")}`
+    : url;
+
 const Gallery = () => {
   const { lang } = useLang();
-  const cases = [
-    { img: "gallery-1.png", titleKey: "galCase1" },
-    { img: "gallery-2.png", titleKey: "galCase2" },
-    { img: "gallery-3.png", titleKey: "galCase3" },
-    { img: "gallery-4.png", titleKey: "galCase4" },
-  ] as const;
+  const tx = useTx();
+  const [items, setItems] = useState<DbGalleryItem[]>([]);
+
+  useEffect(() => {
+    fetch("/api/gallery")
+      .then(r => r.json())
+      .then(d => { if (d.success && d.items?.length > 0) setItems(d.items); })
+      .catch(() => {});
+  }, []);
 
   return (
     <section id="gallery" className="py-24 bg-white">
@@ -624,9 +673,9 @@ const Gallery = () => {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {cases.map((c, i) => (
+          {items.map((c, i) => (
             <motion.div
-              key={i}
+              key={c.id ?? i}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
@@ -635,8 +684,8 @@ const Gallery = () => {
             >
               <div className="aspect-square relative overflow-hidden">
                 <img
-                  src={`${import.meta.env.BASE_URL}images/${c.img}`}
-                  alt={tx(c.titleKey, lang)}
+                  src={resolveImg(c.image_url)}
+                  alt={lang === "ar" ? c.title_ar : c.title_en}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent" />
@@ -647,7 +696,9 @@ const Gallery = () => {
                   {tx("galAfter", lang)}
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <h4 className="text-white font-bold text-base">{tx(c.titleKey, lang)}</h4>
+                  <h4 className="text-white font-bold text-base">
+                    {lang === "ar" ? c.title_ar : c.title_en}
+                  </h4>
                 </div>
               </div>
             </motion.div>
@@ -682,6 +733,7 @@ type DbReview = { id: number; name: string; rating: number; comment: string; cre
 
 const Testimonials = () => {
   const { lang } = useLang();
+  const tx = useTx();
   const [dbReviews, setDbReviews] = useState<DbReview[]>([]);
 
   useEffect(() => {
@@ -951,6 +1003,7 @@ const ReviewForm = () => {
 const Contact = () => {
   const { lang } = useLang();
   const { get } = useSiteContent();
+  const tx = useTx();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [name, setName]       = useState("");
@@ -1159,6 +1212,7 @@ const Contact = () => {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 const Footer = () => {
   const { lang } = useLang();
+  const tx = useTx();
   const year = new Date().getFullYear();
 
   const links = [
