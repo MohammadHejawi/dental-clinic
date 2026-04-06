@@ -853,13 +853,13 @@ const Gallery = () => {
           ))}
         </div>
 
-        {/* Instagram CTA */}
+        {/* Social CTAs */}
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={fadeInUp}
-          className="mt-12 text-center"
+          className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <a
             href="https://www.instagram.com/dr.tareq_alhijawi"
@@ -869,6 +869,15 @@ const Gallery = () => {
           >
             <Instagram className="w-5 h-5" />
             {lang === "ar" ? "تابع المزيد من الحالات على إنستغرام" : "See More Cases on Instagram"}
+          </a>
+          <a
+            href="https://www.facebook.com/share/18gHHhErYC/?mibextid=wwXIfr"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 text-white font-bold shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all"
+          >
+            <Facebook className="w-5 h-5" />
+            {lang === "ar" ? "تابعنا على فيسبوك" : "Follow Us on Facebook"}
           </a>
         </motion.div>
       </div>
