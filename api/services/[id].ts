@@ -1,38 +1,43 @@
-import { neon } from "@neondatabase/serverless";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { Pool } from "pg";
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } });
+const PW = () => process.env.ADMIN_PASSWORD || "clinic2024";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const sql = neon(process.env.DATABASE_URL!);
-  const adminPassword = process.env.ADMIN_PASSWORD || "clinic2024";
-  const id = parseInt(req.query.id as string);
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.status(200).end();
 
-  if (isNaN(id)) return res.status(400).json({ success: false, error: "Invalid ID" });
+  const id = Number(req.query.id);
+  if (!id) return res.status(400).json({ success: false, error: "Invalid ID" });
 
-  try {
-    // ── PUT (update) ─────────────────────────────────────────────────────────
-    if (req.method === "PUT") {
-      const { password, title_ar, title_en, desc_ar, desc_en, icon, color, sort_order, active } = req.body || {};
-      if (password !== adminPassword) return res.status(401).json({ success: false, error: "Unauthorized" });
-      const rows = await sql`
-        UPDATE services SET
-          title_ar=${title_ar||''}, title_en=${title_en||''},
-          desc_ar=${desc_ar||''},   desc_en=${desc_en||''},
-          icon=${icon||'Star'},     color=${color||'from-sky-400 to-blue-500'},
-          sort_order=${sort_order??99}, active=${active!==false}
-        WHERE id=${id} RETURNING *`;
-      return res.status(200).json({ success: true, service: rows[0] });
+  if (req.method === "PUT") {
+    const { password, title_ar, title_en, desc_ar, desc_en, icon, color, sort_order, active } = req.body;
+    if (password !== PW()) return res.status(401).json({ success: false, error: "غير مصرح" });
+    try {
+      const { rows } = await pool.query(
+        `UPDATE services SET title_ar=$1,title_en=$2,desc_ar=$3,desc_en=$4,icon=$5,color=$6,sort_order=$7,active=$8
+         WHERE id=$9 RETURNING *`,
+        [title_ar, title_en, desc_ar, desc_en, icon, color, sort_order, active ?? true, id]
+      );
+      return res.json({ success: true, service: rows[0] });
+    } catch (e: any) {
+      return res.status(500).json({ success: false, error: e.message });
     }
-
-    // ── DELETE ───────────────────────────────────────────────────────────────
-    if (req.method === "DELETE") {
-      const { password } = req.body || {};
-      if (password !== adminPassword) return res.status(401).json({ success: false, error: "Unauthorized" });
-      await sql`DELETE FROM services WHERE id=${id}`;
-      return res.status(200).json({ success: true });
-    }
-
-    return res.status(405).json({ success: false, error: "Method not allowed" });
-  } catch (err: any) {
-    return res.status(500).json({ success: false, error: err?.message || "Server error" });
   }
+
+  if (req.method === "DELETE") {
+    const { password } = req.body;
+    if (password !== PW()) return res.status(401).json({ success: false, error: "غير مصرح" });
+    try {
+      await pool.query("DELETE FROM services WHERE id=$1", [id]);
+      return res.json({ success: true });
+    } catch (e: any) {
+      return res.status(500).json({ success: false, error: e.message });
+    }
+  }
+
+  return res.status(405).json({ success: false, error: "Method not allowed" });
 }
