@@ -209,7 +209,7 @@ const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         {/* Logo */}
-        <div className="flex items-center gap-3">
+        <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <img
             src={`${import.meta.env.BASE_URL}images/clinic-logo.jpeg`}
             alt="عيادة الدكتور طارق الهيجاوي"
@@ -223,7 +223,7 @@ const Navbar = () => {
               {lang === "ar" ? "لطب وتجميل الأسنان" : "Dental & Cosmetic Clinic"}
             </p>
           </div>
-        </div>
+        </a>
 
         {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center gap-6">
