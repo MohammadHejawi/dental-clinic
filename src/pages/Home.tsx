@@ -571,10 +571,21 @@ const Hero = () => {
 // ─── Services ─────────────────────────────────────────────────────────────────
 type DbService = { id: number; title_ar: string; title_en: string; desc_ar: string; desc_en: string; icon: string; color: string };
 
+const STATIC_SERVICES: DbService[] = [
+  { id:1,  title_ar:"تبييض الأسنان",     title_en:"Teeth Whitening",       desc_ar:"تبييض احترافي آمن يمنحك ابتسامة ناصعة البياض في جلسة واحدة.",                                desc_en:"Professional safe whitening for a brilliantly white smile in a single session.",            icon:"Smile",        color:"from-sky-400 to-blue-500",    sort_order:1, active:true },
+  { id:2,  title_ar:"زراعة الأسنان",     title_en:"Dental Implants",       desc_ar:"حلول دائمة ومتينة لتعويض الأسنان المفقودة باستخدام أفضل الزرعات العالمية.",              desc_en:"Permanent and durable solutions for missing teeth using world-class implants.",             icon:"ShieldCheck",  color:"from-blue-500 to-indigo-600", sort_order:2, active:true },
+  { id:3,  title_ar:"تقويم الأسنان",     title_en:"Orthodontics",          desc_ar:"تقويم معدني أو شفاف (إنفزلاين) للحصول على أسنان مرتبة وإطباق سليم.",                    desc_en:"Metal or clear (Invisalign) braces for perfectly aligned teeth and correct bite.",         icon:"Layers",       color:"from-violet-400 to-violet-600",sort_order:3, active:true },
+  { id:4,  title_ar:"تنظيف الأسنان",     title_en:"Teeth Cleaning",        desc_ar:"تنظيف عميق وإزالة الجير والتصبغات للحفاظ على صحة لثتك وأسنانك.",                       desc_en:"Deep cleaning and tartar removal to preserve the health of your gums and teeth.",           icon:"Droplets",     color:"from-cyan-400 to-cyan-600",   sort_order:4, active:true },
+  { id:5,  title_ar:"التركيبات الثابتة", title_en:"Dental Prosthetics",    desc_ar:"تيجان وجسور عالية الجودة (زيركون وإيماكس) تعيد وظيفة وجمال أسنانك.",                   desc_en:"High-quality crowns and bridges (Zirconia & E-max) restoring function and beauty.",        icon:"Activity",     color:"from-sky-500 to-sky-700",     sort_order:5, active:true },
+  { id:6,  title_ar:"علاج العصب",        title_en:"Root Canal Treatment",  desc_ar:"علاج دقيق وفعال بأحدث الأجهزة لإنقاذ الأسنان المتضررة وتخفيف الألم.",                  desc_en:"Precise treatment with the latest equipment to save damaged teeth and relieve pain.",       icon:"Stethoscope",  color:"from-blue-600 to-blue-800",   sort_order:6, active:true },
+  { id:7,  title_ar:"ابتسامة هوليود",   title_en:"Hollywood Smile",       desc_ar:"قشور البورسلين والزيركون لتحقيق ابتسامة ساحرة تُشبه نجوم السينما.",                     desc_en:"Porcelain and zirconia veneers for a stunning celebrity-style smile transformation.",       icon:"Sparkles",     color:"from-amber-400 to-orange-500",sort_order:7, active:true },
+  { id:8,  title_ar:"علاج أمراض اللثة", title_en:"Gum Disease Treatment", desc_ar:"تشخيص وعلاج شامل لأمراض اللثة والحفاظ على صحة نسيجها.",                                desc_en:"Comprehensive diagnosis and treatment of gum disease to preserve healthy tissue.",           icon:"CheckCircle2", color:"from-emerald-400 to-emerald-600",sort_order:8,active:true },
+];
+
 const Services = () => {
   const { lang } = useLang();
   const tx = useTx();
-  const [services, setServices] = useState<DbService[]>([]);
+  const [services, setServices] = useState<DbService[]>(STATIC_SERVICES);
 
   useEffect(() => {
     fetch("/api/services")
