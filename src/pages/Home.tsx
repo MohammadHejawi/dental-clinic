@@ -370,14 +370,12 @@ const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity group">
-          <div className="relative flex-shrink-0">
-            <div className={cn(
-              "absolute inset-0 rounded-2xl transition-all duration-300 blur-md opacity-0 group-hover:opacity-60",
-              scrolled ? "bg-blue-200" : "bg-sky-300"
-            )} />
-            <ClinicLogo size={50} />
-          </div>
+        <a href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+          <img
+            src={`${import.meta.env.BASE_URL}images/clinic-logo-official.png`}
+            alt="عيادة الدكتور طارق الهيجاوي"
+            className="w-14 h-14 object-contain"
+          />
           <div>
             <h1 className="text-base font-extrabold text-slate-900 leading-tight tracking-tight">
               {lang === "ar" ? "د. طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
@@ -1370,7 +1368,11 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-5">
-              <ClinicLogo size={48} white />
+              <img
+                src={`${import.meta.env.BASE_URL}images/clinic-logo-official.png`}
+                alt="logo"
+                className="w-14 h-14 object-contain"
+              />
               <div>
                 <h3 className="text-white font-extrabold text-base leading-tight">
                   {lang === "ar" ? "د. طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
