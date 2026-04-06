@@ -9,7 +9,7 @@ import {
 import { useSiteContent } from "@/contexts/SiteContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = "contact" | "doctor" | "hero" | "services" | "gallery" | "images" | "reviews" | "texts";
+type Tab = "contact" | "doctor" | "hero" | "services" | "gallery" | "images" | "reviews" | "texts" | "stats";
 
 type DbReview = { id: number; name: string; rating: number; comment: string; created_at: string };
 
@@ -32,14 +32,15 @@ type DbClinicImage = {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-  { id: "contact",  label: "التواصل",   icon: <Phone         className="w-4 h-4" /> },
-  { id: "doctor",   label: "الطبيب",    icon: <User          className="w-4 h-4" /> },
-  { id: "hero",     label: "البانر",    icon: <Globe         className="w-4 h-4" /> },
-  { id: "images",   label: "الصور",     icon: <ImageIcon     className="w-4 h-4" /> },
-  { id: "texts",    label: "النصوص",    icon: <Edit2         className="w-4 h-4" /> },
-  { id: "services", label: "الخدمات",   icon: <Layers        className="w-4 h-4" /> },
-  { id: "gallery",  label: "المعرض",    icon: <ImageIcon     className="w-4 h-4" /> },
-  { id: "reviews",  label: "التقييمات", icon: <MessageSquare className="w-4 h-4" /> },
+  { id: "contact",  label: "التواصل",    icon: <Phone         className="w-4 h-4" /> },
+  { id: "doctor",   label: "الطبيب",     icon: <User          className="w-4 h-4" /> },
+  { id: "hero",     label: "البانر",     icon: <Globe         className="w-4 h-4" /> },
+  { id: "stats",    label: "الإحصائيات", icon: <Award         className="w-4 h-4" /> },
+  { id: "images",   label: "الصور",      icon: <ImageIcon     className="w-4 h-4" /> },
+  { id: "texts",    label: "النصوص",     icon: <Edit2         className="w-4 h-4" /> },
+  { id: "services", label: "الخدمات",    icon: <Layers        className="w-4 h-4" /> },
+  { id: "gallery",  label: "المعرض",     icon: <ImageIcon     className="w-4 h-4" /> },
+  { id: "reviews",  label: "التقييمات",  icon: <MessageSquare className="w-4 h-4" /> },
 ];
 
 const ICON_OPTIONS = [
@@ -128,7 +129,7 @@ export default function Admin() {
   const [imgSaving,        setImgSaving]        = useState(false);
   // Texts tab
   const [textsSaving,      setTextsSaving]      = useState(false);
-  const [openGroups,       setOpenGroups]       = useState<Set<string>>(new Set(["nav"]));
+  const [openGroups,       setOpenGroups]       = useState<Set<string>>(new Set(["nav", "stats"]));
 
   useEffect(() => {
     if (Object.keys(content).length > 0) setFields(content);
@@ -737,6 +738,128 @@ export default function Admin() {
           </div>
         )}
 
+        {/* ══ STATS ════════════════════════════════════════════════════════════ */}
+        {tab === "stats" && (
+          <div className="space-y-4">
+            <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3 text-sm text-orange-800">
+              <Award className="w-5 h-5 flex-shrink-0 mt-0.5 text-orange-500" />
+              <div>
+                <strong>الإحصائيات والأرقام:</strong> هذه الأرقام تظهر في البانر الرئيسي للموقع. الرقم يظهر بنفسه دون ترجمة، والتسمية تحتاج نسخة عربية وإنجليزية.
+              </div>
+            </div>
+
+            {/* Stat 1 */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-l from-orange-50 to-white px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+                <span className="text-2xl">🏆</span>
+                <p className="font-bold text-slate-800">الإحصائية الأولى (يسار)</p>
+              </div>
+              <div className="px-6 py-5 space-y-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-bold text-slate-600">الرقم / القيمة</label>
+                  <input dir="ltr"
+                    value={fields["stat1_num"] ?? get("stat1_num", "15+")}
+                    onChange={e => setField("stat1_num", e.target.value)}
+                    placeholder="مثال: 15+"
+                    className="w-40 px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition text-slate-800 text-2xl font-black text-center" />
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">التسمية — عربي</label>
+                    <input dir="rtl" value={fields["stat1Label_ar"] ?? get("stat1Label_ar", "عاماً خبرة")} onChange={e => setField("stat1Label_ar", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition text-slate-800 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">التسمية — English</label>
+                    <input dir="ltr" value={fields["stat1Label_en"] ?? get("stat1Label_en", "Years Exp.")} onChange={e => setField("stat1Label_en", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition text-slate-800 text-sm" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stat 2 */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-l from-blue-50 to-white px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+                <span className="text-2xl">😊</span>
+                <p className="font-bold text-slate-800">الإحصائية الثانية (وسط)</p>
+              </div>
+              <div className="px-6 py-5 space-y-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-bold text-slate-600">الرقم / القيمة</label>
+                  <input dir="ltr"
+                    value={fields["stat2_num"] ?? get("stat2_num", "5000+")}
+                    onChange={e => setField("stat2_num", e.target.value)}
+                    placeholder="مثال: 5000+"
+                    className="w-40 px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-slate-800 text-2xl font-black text-center" />
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">التسمية — عربي</label>
+                    <input dir="rtl" value={fields["stat2Label_ar"] ?? get("stat2Label_ar", "مريض سعيد")} onChange={e => setField("stat2Label_ar", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-slate-800 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">التسمية — English</label>
+                    <input dir="ltr" value={fields["stat2Label_en"] ?? get("stat2Label_en", "Happy Patients")} onChange={e => setField("stat2Label_en", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition text-slate-800 text-sm" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stat 3 */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-l from-emerald-50 to-white px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+                <span className="text-2xl">⚙️</span>
+                <p className="font-bold text-slate-800">الإحصائية الثالثة (يمين)</p>
+              </div>
+              <div className="px-6 py-5 space-y-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-bold text-slate-600">الرقم / القيمة</label>
+                  <input dir="ltr"
+                    value={fields["stat3_num"] ?? get("stat3_num", "8")}
+                    onChange={e => setField("stat3_num", e.target.value)}
+                    placeholder="مثال: 8"
+                    className="w-40 px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition text-slate-800 text-2xl font-black text-center" />
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">التسمية — عربي</label>
+                    <input dir="rtl" value={fields["stat3Label_ar"] ?? get("stat3Label_ar", "خدمات متكاملة")} onChange={e => setField("stat3Label_ar", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition text-slate-800 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">التسمية — English</label>
+                    <input dir="ltr" value={fields["stat3Label_en"] ?? get("stat3Label_en", "Services")} onChange={e => setField("stat3Label_en", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition text-slate-800 text-sm" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Save */}
+            <button
+              onClick={async () => {
+                setTextsSaving(true);
+                try {
+                  const res = await fetch("/api/content", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password: localStorage.getItem("admin_pw") ?? "", updates: fields }),
+                  });
+                  if (!res.ok) throw new Error();
+                  await refresh();
+                  setMsg({ type: "success", text: "✅ تم حفظ الإحصائيات بنجاح" });
+                } catch {
+                  setMsg({ type: "error", text: "❌ فشل الحفظ، حاول مرة أخرى" });
+                } finally {
+                  setTextsSaving(false);
+                  setTimeout(() => setMsg(null), 3000);
+                }
+              }}
+              disabled={textsSaving}
+              className="w-full py-4 rounded-2xl bg-gradient-to-l from-orange-500 to-amber-500 text-white font-bold text-base shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {textsSaving ? <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />جاري الحفظ...</> : <><Save className="w-5 h-5" />حفظ الإحصائيات</>}
+            </button>
+          </div>
+        )}
+
         {/* ══ TEXTS ════════════════════════════════════════════════════════════ */}
         {tab === "texts" && (() => {
           const TEXT_GROUPS = [
@@ -762,6 +885,17 @@ export default function Admin() {
                 { key: "heroBtn1",   label: "زر الحجز" },
                 { key: "heroBtn2",   label: "زر الخدمات" },
                 { key: "heroYears",  label: "نص سنوات الخبرة" },
+              ],
+            },
+            {
+              id: "stats", title: "🔢 الإحصائيات والأرقام (البانر الرئيسي)", color: "orange",
+              fields: [
+                { key: "stat1_num",  label: "الرقم الأول (مثال: 15+)",    single: true },
+                { key: "stat1Label", label: "تسمية الإحصائية الأولى" },
+                { key: "stat2_num",  label: "الرقم الثاني (مثال: 5000+)", single: true },
+                { key: "stat2Label", label: "تسمية الإحصائية الثانية" },
+                { key: "stat3_num",  label: "الرقم الثالث (مثال: 8)",      single: true },
+                { key: "stat3Label", label: "تسمية الإحصائية الثالثة" },
               ],
             },
             {
@@ -858,6 +992,7 @@ export default function Admin() {
             emerald: "bg-emerald-50 border-emerald-200 text-emerald-700",
             teal: "bg-teal-50 border-teal-200 text-teal-700",
             amber: "bg-amber-50 border-amber-200 text-amber-700",
+            orange: "bg-orange-50 border-orange-200 text-orange-700",
             rose: "bg-rose-50 border-rose-200 text-rose-700",
             indigo: "bg-indigo-50 border-indigo-200 text-indigo-700",
             slate: "bg-slate-50 border-slate-200 text-slate-700",
@@ -933,7 +1068,25 @@ export default function Admin() {
 
                   {openGroups.has(group.id) && (
                     <div className="px-6 pb-6 space-y-3 border-t border-slate-100 pt-4">
-                      {group.fields.map(f => biField(f.key, f.label, (f as any).textarea))}
+                      {group.id === "stats" && (
+                        <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 text-sm text-orange-800 mb-2">
+                          💡 الأرقام (مثل 15+، 5000+) تظهر في البانر الرئيسي بنفس الشكل — التسمية لها نسختان عربي وإنجليزي.
+                        </div>
+                      )}
+                      {group.fields.map(f =>
+                        (f as any).single
+                          ? (
+                            <div key={f.key} className="border border-slate-100 rounded-2xl p-4 space-y-2">
+                              <p className="text-sm font-bold text-slate-700">{f.label}</p>
+                              <input dir="ltr"
+                                value={fields[f.key] ?? get(f.key, "")}
+                                onChange={e => setField(f.key, e.target.value)}
+                                placeholder="مثال: 15+ أو 5000+"
+                                className="w-full sm:w-48 px-3 py-2.5 rounded-xl border border-slate-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition text-slate-800 text-lg font-black text-center" />
+                            </div>
+                          )
+                          : biField(f.key, f.label, (f as any).textarea)
+                      )}
                     </div>
                   )}
                 </div>
