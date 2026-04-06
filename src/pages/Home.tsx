@@ -70,6 +70,11 @@ const t = {
   heroBtn2:       { ar: "تعرف على خدماتنا", en: "Explore Our Services" },
   heroYears:      { ar: "عاماً من الخبرة", en: "Years of Experience" },
 
+  // Stats
+  stat1Label: { ar: "عاماً خبرة",        en: "Years Exp." },
+  stat2Label: { ar: "مريض سعيد",         en: "Happy Patients" },
+  stat3Label: { ar: "خدمات متكاملة",     en: "Services" },
+
   // Services
   svcTag:         { ar: "خدماتنا",             en: "Our Services" },
   svcTitle:       { ar: "رعاية شاملة لصحة فمك", en: "Comprehensive Oral Care" },
@@ -378,7 +383,7 @@ const Navbar = () => {
           />
           <div>
             <h1 className="text-base font-extrabold text-slate-900 leading-tight tracking-tight">
-              {lang === "ar" ? "الدكتور طارق الهيجاوي" : "Doctor Tareq Al-Hijawi"}
+              {lang === "ar" ? "الدكتور طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
             </h1>
             <p className="text-xs text-primary font-bold tracking-wide">
               {lang === "ar" ? "لطب وتجميل الأسنان" : "Dental & Cosmetic Clinic"}
@@ -516,9 +521,8 @@ const Hero = () => {
             {/* Stats Row */}
             <motion.div variants={fadeInUp} className="flex flex-wrap gap-8 mt-12 justify-center lg:justify-start">
               {[
-                { num: "21+", label: lang === "ar" ? "عاماً خبرة" : "Years Exp." },
-                 ,
-               { num: "8+", label: lang === "ar" ? "خدمات متكاملة" : "Services" },
+                { num: get("stat1_num", "21+"),  label: tx("stat1Label") },
+                { num: get("stat3_num", "8"),     label: tx("stat3Label") },
               ].map((s, i) => (
                 <div key={i} className="text-center">
                   <p className="text-3xl font-black text-primary">{s.num}</p>
@@ -557,8 +561,8 @@ const Hero = () => {
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-2xl font-black text-slate-900">15+</p>
-                <p className="text-sm font-semibold text-slate-500">{tx("heroYears", lang)}</p>
+                <p className="text-2xl font-black text-slate-900">{get("stat1_num", "15+")}</p>
+                <p className="text-sm font-semibold text-slate-500">{tx("heroYears")}</p>
               </div>
             </motion.div>
           </motion.div>
@@ -691,20 +695,6 @@ const About = () => {
                 className="w-full h-full object-cover object-top"
               />
             </div>
-            {/* Floating credential */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4 }}
-              className={cn(
-                "absolute -bottom-6 z-20 bg-white px-6 py-4 rounded-2xl shadow-xl border border-slate-100",
-                lang === "ar" ? "left-0" : "right-0"
-              )}
-            >
-              <p className="text-3xl font-black text-primary">5000+</p>
-              <p className="text-sm font-semibold text-slate-500">{lang === "ar" ? "حالة ناجحة" : "Successful Cases"}</p>
-            </motion.div>
           </motion.div>
         </div>
       </div>
@@ -1395,7 +1385,7 @@ const Footer = () => {
               />
               <div>
                 <h3 className="text-white font-extrabold text-base leading-tight">
-                  {lang === "ar" ? "د. طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
+                  {lang === "ar" ? "الدكتور طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
                 </h3>
                 <p className="text-sky-400 text-xs font-semibold">
                   {lang === "ar" ? "لطب وتجميل الأسنان" : "Dental & Cosmetic Clinic"}
