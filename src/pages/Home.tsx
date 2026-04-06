@@ -372,7 +372,7 @@ const Navbar = () => {
         {/* Logo */}
         <a href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
           <img
-            src={`${import.meta.env.BASE_URL}images/clinic-logo-official.png`}
+            src={`${import.meta.env.BASE_URL}images/clinic-logo-transparent.png`}
             alt="عيادة الدكتور طارق الهيجاوي"
             className="w-14 h-14 object-contain"
           />
@@ -1369,7 +1369,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-3 mb-5">
               <img
-                src={`${import.meta.env.BASE_URL}images/clinic-logo-official.png`}
+                src={`${import.meta.env.BASE_URL}images/clinic-logo-transparent.png`}
                 alt="logo"
                 className="w-14 h-14 object-contain"
               />
