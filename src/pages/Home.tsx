@@ -1348,7 +1348,7 @@ const Contact = () => {
             {/* Map Embed */}
             <div className="mt-6 rounded-3xl overflow-hidden border-4 border-white shadow-xl h-52">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3367.5!2d35.8497!3d32.5568!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x151c7f0fcda52d5d%3A0x0!2zMzLCsDMzJzI0LjUiTiAzNcKwNTAnNTkuMCJF!5e0!3m2!1sar!2sjo!4v1711111111111!5m2!1sar!2sjo&q=Al-Hashmi+St+141+Irbid+Jordan"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d848.5032480389897!2d35.86147066960697!3d32.55449887322526!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x151c7a6aeac5e58b%3A0xd6ffb24e574c09d4!2z2YjZitmK2K_YqSDYp9mE2K_Zg9iq2YjYsiDYt9in2LHZgiDYp9mE2Nfau9in2YjZig!5e0!3m2!1sar!2sjo!4v1744107600000!5m2!1sar!2sjo"
                 width="100%" height="100%"
                 style={{ border: 0 }}
                 allowFullScreen
@@ -1357,6 +1357,15 @@ const Contact = () => {
                 title="Clinic Location"
               />
             </div>
+            <a
+              href="https://maps.app.goo.gl/qRD7dUhPygaNcPdt9"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 flex items-center justify-center gap-2 text-primary font-semibold text-sm hover:underline"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              {lang === "ar" ? "افتح في خرائط Google" : "Open in Google Maps"}
+            </a>
           </div>
         </div>
       </div>
