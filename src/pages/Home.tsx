@@ -102,14 +102,14 @@ const t = {
 
   // About
   abtTag:     { ar: "عن الطبيب",                      en: "About The Doctor" },
-  abtName:    { ar: "الدكتور طارق الهيجاوي",           en: "Doctor Tareq Al-Hijawi" },
-  abtTitle:   { ar: " طب و زراعة وتجميل الأسنان",        en: "Dental Implant and Cosmetic Dentistry" },
+  abtName:    { ar: "الدكتور طارق الهيجاوي",           en: "Dr. Tareq Al-Hijawi" },
+  abtTitle:   { ar: "أخصائي طب وتجميل الأسنان",        en: "Specialist in Dental & Cosmetic Dentistry" },
   abtBio:     {
-    ar: "يحمل الدكتور طارق شهادة البكالوريوس في طب الأسنان، مع تخصص دقيق في طب تجميل الأسنان والتركيبات. عضو الهيئة الأردنية لزراعة الأسنان منذ 2011. عمل مع نخبة من أفضل المراكز الطبية في الأردن والخارج، ويتميز بأسلوبه اللطيف ودقته العالية في العمل، مما يضمن تجربة مريحة وخالية من الألم لجميع مرضاه.",
+    ar: "يحمل الدكتور طارق شهادة البكالوريوس في طب الأسنان، مع تخصص دقيق في طب تجميل الأسنان والتركيبات. عضو الهيئة الأردنية لزراعة الأسنان. عمل مع نخبة من أفضل المراكز الطبية في الأردن والخارج، ويتميز بأسلوبه اللطيف ودقته العالية في العمل، مما يضمن تجربة مريحة وخالية من الألم لجميع مرضاه.",
     en: "Dr. Tareq holds a Bachelor's degree in Dentistry, with advanced specialization in cosmetic dentistry and prosthetics. He is a member of the Jordan Implant Board. He has worked with leading medical centers in Jordan and abroad, and is known for his gentle approach and exceptional precision — ensuring a comfortable, pain-free experience for all patients.",
   },
-  abtCred1: { ar: " عضو الهيئة الأردنية لزراعة الأسنان منذ 2011",          en: "Member – Jordan Implant Board since 2011" },
-  abtCred2: { ar: "خبرة تزيد عن 20 عاماً في طب الأسنان",      en: "20+ Years of Dental Experience" },
+  abtCred1: { ar: "عضو الهيئة الأردنية لزراعة الأسنان",          en: "Member – Jordan Implant Board" },
+  abtCred2: { ar: "خبرة تزيد عن 15 عاماً في طب الأسنان",      en: "15+ Years of Dental Experience" },
   abtCred3: { ar: "آلاف الحالات الناجحة والموثقة",             en: "Thousands of Successful Cases" },
   abtCred4: { ar: "استخدام أحدث تقنيات طب الأسنان الرقمي",    en: "Latest Digital Dentistry Technologies" },
   abtBtn:   { ar: "تواصل مع الطبيب",                          en: "Contact The Doctor" },
@@ -174,8 +174,8 @@ const t = {
 
   // Footer
   footerDesc: {
-    ar: "عيادة متخصصة في طب و زراعة و تجميل الأسنان تقدم خدمات علاجية وتجميلية بأعلى معايير الجودة والسلامة.",
-    en: "A specialized dental and implant and cosmetic clinic offering treatment and cosmetic services to the highest quality and safety standards.",
+    ar: "عيادة متخصصة في طب وتجميل الأسنان تقدم خدمات علاجية وتجميلية بأعلى معايير الجودة والسلامة.",
+    en: "A specialized dental and cosmetic clinic offering treatment and cosmetic services to the highest quality and safety standards.",
   },
   footerLinks:  { ar: "روابط سريعة", en: "Quick Links" },
   footerContact:{ ar: "معلومات التواصل", en: "Contact Info" },
@@ -386,7 +386,7 @@ const Navbar = () => {
               {lang === "ar" ? "الدكتور طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
             </h1>
             <p className="text-xs text-primary font-bold tracking-wide">
-              {lang === "ar" ? "طب و زراعة وتجميل الأسنان" : "Dental Implant and Cosmetic Clinic"}
+              {lang === "ar" ? "طب وزراعة وتجميل الأسنان" : "Dental, Implant & Cosmetic"}
             </p>
           </div>
         </a>
@@ -505,6 +505,13 @@ const Hero = () => {
               </span>
             </motion.h1>
 
+            {/* SEO H2 – keywords for search engines */}
+            {lang === "ar" && (
+              <h2 className="sr-only">
+                طبيب زراعة أسنان في اربد – أفضل دكتور تجميل أسنان اربد – زراعة الأسنان في الأردن – ابتسامة هوليود اربد
+              </h2>
+            )}
+
             <motion.p variants={fadeInUp} className="text-lg md:text-xl text-slate-600 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
               {get(`hero_sub_${lang}`, tx("heroSub", lang))}
             </motion.p>
@@ -561,7 +568,7 @@ const Hero = () => {
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-2xl font-black text-slate-900">{get("stat1_num", "15+")}</p>
+                <p className="text-2xl font-black text-slate-900">{get("stat1_num", "21+")}</p>
                 <p className="text-sm font-semibold text-slate-500">{tx("heroYears")}</p>
               </div>
             </motion.div>
@@ -603,7 +610,8 @@ const Services = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <p className="text-primary font-bold tracking-widest uppercase text-sm mb-3">{tx("svcTag", lang)}</p>
-          <h3 className="text-4xl md:text-5xl font-black text-slate-900 mb-6">{tx("svcTitle", lang)}</h3>
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6">{tx("svcTitle", lang)}</h2>
+          {lang === "ar" && <p className="sr-only">زراعة الأسنان في الأردن – ابتسامة هوليود اربد – تقويم أسنان – تبييض أسنان اربد</p>}
           <p className="text-lg text-slate-600">{tx("svcSub", lang)}</p>
         </div>
 
@@ -691,7 +699,7 @@ const About = () => {
             <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden border-8 border-white shadow-2xl z-10 max-h-[600px]">
               <img
                 src={resolveImg(get("doctor_image", "gallery-local://doctor-main.jpeg"))}
-                alt={lang === "ar" ? "الدكتور طارق الهيجاوي" : "Doctor Tareq Al-Hijawi"}
+                alt={lang === "ar" ? "الدكتور طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
                 className="w-full h-full object-cover object-top"
               />
             </div>
@@ -1388,7 +1396,7 @@ const Footer = () => {
                   {lang === "ar" ? "الدكتور طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
                 </h3>
                 <p className="text-sky-400 text-xs font-semibold">
-                  {lang === "ar" ? "لطب وتجميل الأسنان" : "Dental & Cosmetic Clinic"}
+                  {lang === "ar" ? "طب وزراعة وتجميل الأسنان" : "Dental, Implant & Cosmetic"}
                 </p>
               </div>
             </div>
@@ -1457,8 +1465,8 @@ export default function Home() {
     document.documentElement.lang = lang;
     document.title =
       lang === "ar"
-        ? "عيادة الدكتور طارق الهيجاوي لطب وتجميل الأسنان"
-        : "Dr. Tareq Al-Hijawi – Dental & Cosmetic Clinic";
+        ? "أفضل عيادة لزراعة وتجميل الأسنان في إربد – الدكتور طارق الهيجاوي"
+        : "Best Dental Implant & Cosmetic Clinic in Irbid – Dr. Tareq Al-Hijawi";
   }, [lang]);
 
   return (
