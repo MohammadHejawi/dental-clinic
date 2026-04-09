@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext, useCallback } from "react";
+import React, { useState, useEffect, useRef, createContext, useContext, useCallback } from "react";
 import { useSiteContent } from "@/contexts/SiteContent";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -28,6 +28,7 @@ import {
   Shield,
   Award,
   Crown,
+  Bot,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -1663,6 +1664,224 @@ const FAQ = () => {
   );
 };
 
+// ─── AI ChatBot ───────────────────────────────────────────────────────────────
+type ChatMsg = { role: "user" | "assistant"; content: string };
+
+const ChatBot = () => {
+  const { lang } = useLang();
+  const isAr = lang === "ar";
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const welcome: ChatMsg = {
+    role: "assistant",
+    content: isAr
+      ? "مرحباً! 👋 أنا المساعد الذكي لعيادة الدكتور طارق الهيجاوي.\nكيف يمكنني مساعدتك اليوم؟"
+      : "Hello! 👋 I'm the AI assistant for Dr. Tareq Al-Hijawi's Clinic.\nHow can I help you today?",
+  };
+
+  useEffect(() => {
+    if (open && messages.length === 0) setMessages([welcome]);
+    if (open) setTimeout(() => inputRef.current?.focus(), 100);
+  }, [open]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  const sendMsg = async (text: string, currentMsgs: ChatMsg[]) => {
+    const newMsgs: ChatMsg[] = [...currentMsgs, { role: "user", content: text }];
+    setMessages(newMsgs);
+    setInput("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lang,
+          messages: newMsgs.map(m => ({ role: m.role, content: m.content })),
+        }),
+      });
+      const data = await res.json();
+      setMessages(p => [...p, { role: "assistant", content: data.reply || (isAr ? "عذراً، حدث خطأ. يرجى المحاولة لاحقاً." : "Sorry, an error occurred. Please try again.") }]);
+    } catch {
+      setMessages(p => [...p, { role: "assistant", content: isAr ? "عذراً، تعذّر الاتصال بالخادم." : "Sorry, could not connect to server." }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const send = () => {
+    const text = input.trim();
+    if (!text || loading) return;
+    sendMsg(text, messages);
+  };
+
+  const quickReplies = isAr
+    ? ["ما هي خدماتكم؟", "كيف أحجز موعد؟", "ما ساعات العمل؟"]
+    : ["What services do you offer?", "How to book?", "Working hours?"];
+
+  return (
+    <>
+      {/* Chat Window */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="chatbox"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="fixed bottom-24 end-5 z-50 w-[340px] sm:w-[380px] bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden"
+            style={{ maxHeight: "70vh" }}
+            dir={isAr ? "rtl" : "ltr"}
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-primary to-blue-700 px-4 py-3.5 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-black text-sm leading-tight">
+                  {isAr ? "المساعد الذكي" : "AI Assistant"}
+                </p>
+                <p className="text-blue-100 text-xs">
+                  {isAr ? "عيادة د. طارق الهيجاوي" : "Dr. Tareq's Clinic"}
+                </p>
+              </div>
+              <button onClick={() => setOpen(false)} className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors flex-shrink-0">
+                <X className="w-4 h-4 text-white" />
+              </button>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+              {messages.map((m, i) => (
+                <div key={i} className={`flex ${m.role === "user" ? (isAr ? "justify-start" : "justify-end") : (isAr ? "justify-end" : "justify-start")}`}>
+                  {m.role === "assistant" && (
+                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-1 mx-1.5">
+                      <Sparkles className="w-3 h-3 text-white" />
+                    </div>
+                  )}
+                  <div className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                    m.role === "user"
+                      ? "bg-primary text-white rounded-br-sm"
+                      : "bg-white text-slate-800 shadow-sm border border-slate-100 rounded-bl-sm"
+                  }`}>
+                    {m.content}
+                  </div>
+                </div>
+              ))}
+              {loading && (
+                <div className={`flex ${isAr ? "justify-end" : "justify-start"}`}>
+                  <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0 mt-1 mx-1.5">
+                    <Sparkles className="w-3 h-3 text-white" />
+                  </div>
+                  <div className="bg-white border border-slate-100 shadow-sm rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1.5 items-center">
+                    {[0,1,2].map(i => (
+                      <motion.span key={i} animate={{ y: [0,-5,0] }} transition={{ repeat: Infinity, duration: 0.7, delay: i*0.15 }}
+                        className="w-2 h-2 rounded-full bg-primary/60 block" />
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div ref={bottomRef} />
+            </div>
+
+            {/* Quick Replies */}
+            {messages.length <= 1 && (
+              <div className="px-3 pt-2 pb-1 flex flex-wrap gap-1.5 bg-slate-50">
+                {quickReplies.map(q => (
+                  <button key={q} onClick={() => sendMsg(q, messages)} disabled={loading}
+                    className="text-xs px-3 py-1.5 rounded-full bg-white border border-primary/30 text-primary hover:bg-primary/5 transition-colors font-semibold disabled:opacity-50">
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Input */}
+            <div className="p-3 border-t border-slate-100 bg-white flex gap-2 items-center">
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && send()}
+                placeholder={isAr ? "اكتب رسالتك..." : "Type your message..."}
+                disabled={loading}
+                className="flex-1 px-4 py-2.5 rounded-full border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm transition-all disabled:opacity-60"
+              />
+              <button onClick={send} disabled={loading || !input.trim()}
+                className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center disabled:opacity-40 hover:bg-blue-700 transition-colors flex-shrink-0">
+                <svg viewBox="0 0 24 24" className={`w-4 h-4 fill-none stroke-white stroke-2 ${isAr ? "rotate-180" : ""}`}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Chat Button */}
+      <div className="relative flex items-center">
+        {/* Speech Bubble */}
+        <AnimatePresence>
+          {!open && (
+            <motion.div
+              key="bubble"
+              initial={{ opacity: 0, x: isAr ? 10 : -10, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ delay: 1.2, duration: 0.3 }}
+              className={cn(
+                "absolute bottom-1 bg-white rounded-2xl shadow-lg border border-slate-100 px-3.5 py-2.5 text-xs font-bold text-slate-700 whitespace-nowrap",
+                isAr ? "left-16 rounded-br-none" : "right-16 rounded-bl-none"
+              )}
+            >
+              {isAr ? "🤖 اسألني أي سؤال!" : "🤖 Ask me anything!"}
+              {/* Tail */}
+              <span className={cn(
+                "absolute bottom-3 w-2.5 h-2.5 bg-white border-slate-100 rotate-45",
+                isAr ? "-right-1 border-r border-b" : "-left-1 border-l border-b"
+              )} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <motion.button
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.7 }}
+          onClick={() => setOpen(o => !o)}
+          className="relative w-14 h-14 rounded-full flex items-center justify-center shadow-xl bg-gradient-to-br from-primary to-blue-700 hover:shadow-2xl transition-shadow"
+          title={isAr ? "المساعد الذكي" : "AI Assistant"}
+        >
+          <AnimatePresence mode="wait">
+            {open ? (
+              <motion.span key="close" initial={{ scale: 0, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }}>
+                <X className="w-6 h-6 text-white" />
+              </motion.span>
+            ) : (
+              <motion.span key="bot" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                <Bot className="w-6 h-6 text-white" />
+              </motion.span>
+            )}
+          </AnimatePresence>
+          {/* Online dot */}
+          {!open && (
+            <span className="absolute -top-0.5 -end-0.5 w-3.5 h-3.5 rounded-full bg-green-400 border-2 border-white animate-pulse" />
+          )}
+        </motion.button>
+      </div>
+    </>
+  );
+};
+
 // ─── Floating Buttons (WhatsApp + Back to Top) ────────────────────────────────
 const FloatingButtons = () => {
   const [showTop, setShowTop] = useState(false);
@@ -1675,6 +1894,9 @@ const FloatingButtons = () => {
 
   return (
     <div className="fixed bottom-6 end-5 z-50 flex flex-col gap-3 items-end">
+      {/* AI ChatBot */}
+      <ChatBot />
+
       {/* Back to Top */}
       <AnimatePresence>
         {showTop && (
