@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext } from "react";
+import React, { useState, useEffect, createContext, useContext, useCallback } from "react";
 import { useSiteContent } from "@/contexts/SiteContent";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -181,6 +181,19 @@ const t = {
   footerContact:{ ar: "معلومات التواصل", en: "Contact Info" },
   footerRights: { ar: "جميع الحقوق محفوظة", en: "All Rights Reserved" },
   followUs:     { ar: "تابعنا على", en: "Follow Us" },
+
+  // Announcement Bar
+  announceBadge:   { ar: "عرض خاص", en: "Special Offer" },
+  announceText:    { ar: "احجز موعد اليوم واستفد من استشارة مجانية مع الدكتور طارق!", en: "Book today and enjoy a FREE consultation with Dr. Tareq!" },
+  announceBtn:     { ar: "احجز الآن", en: "Book Now" },
+
+  // FAQ
+  faqTag:   { ar: "الأسئلة الشائعة", en: "FAQ" },
+  faqTitle: { ar: "أسئلة يسألها مرضانا", en: "Questions Our Patients Ask" },
+  faqSub:   { ar: "نجيب على أكثر الأسئلة شيوعاً حول خدماتنا وعلاجاتنا", en: "We answer the most common questions about our services and treatments" },
+
+  // Back to top
+  backToTop: { ar: "للأعلى", en: "Top" },
 };
 
 const tx = (key: keyof typeof t, lang: Lang) => t[key][lang];
@@ -1459,11 +1472,211 @@ const Footer = () => {
   );
 };
 
+// ─── Announcement Bar ─────────────────────────────────────────────────────────
+const AnnouncementBar = ({ onDismiss }: { onDismiss: () => void }) => {
+  const { lang } = useLang();
+  const { get } = useSiteContent();
+
+  const badge = get(`announce_badge_${lang}`, tx("announceBadge", lang));
+  const text  = get(`announce_text_${lang}`,  tx("announceText",  lang));
+  const btn   = get(`announce_btn_${lang}`,   tx("announceBtn",   lang));
+
+  return (
+    <div className="bg-gradient-to-r from-[#1a3a5c] via-[#1e5799] to-[#1a3a5c] text-white text-sm py-2 px-4 flex items-center justify-between gap-2 relative z-50">
+      <div className="flex items-center gap-2 flex-1 justify-center flex-wrap">
+        <span className="bg-[#3b82f6] text-white text-xs font-bold px-2 py-0.5 rounded-full">
+          {badge}
+        </span>
+        <span className="text-white/90">{text}</span>
+        <a
+          href="#contact"
+          className="bg-white text-[#1e5799] text-xs font-bold px-3 py-1 rounded-full hover:bg-blue-50 transition-colors shrink-0"
+        >
+          {btn}
+        </a>
+      </div>
+      <button
+        onClick={onDismiss}
+        className="text-white/60 hover:text-white transition-colors shrink-0 ms-2"
+        aria-label="close"
+      >
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
+
+// ─── FAQ ──────────────────────────────────────────────────────────────────────
+const FAQ_DATA = [
+  {
+    q: { ar: "هل عمليات زراعة الأسنان مؤلمة؟", en: "Are dental implants painful?" },
+    a: { ar: "تُجرى الزراعة تحت تخدير موضعي كامل ولا تشعر بأي ألم أثناء العملية. بعد انتهاء المخدّر قد تشعر بإزعاج بسيط يُعالج بمسكنات عادية.", en: "Implants are placed under full local anesthesia so you feel no pain during the procedure. Afterward, mild discomfort is easily managed with common pain relievers." },
+  },
+  {
+    q: { ar: "كم تستغرق جلسة ابتسامة هوليود؟", en: "How long does a Hollywood Smile session take?" },
+    a: { ar: "عادةً تتطلب جلستين إلى ثلاث جلسات خلال أسبوعين. في الجلسة الأولى يتم التحضير والقياس، وفي الجلسة الثانية يتم تركيب القشور النهائية.", en: "Typically 2–3 sessions over two weeks. The first session involves preparation and measurements; the second involves placing the final veneers." },
+  },
+  {
+    q: { ar: "ما الفرق بين التقويم المعدني والشفاف (إنفزلاين)؟", en: "What is the difference between metal braces and Invisalign?" },
+    a: { ar: "التقويم المعدني ثابت وفعّال لجميع الحالات. الإنفزلاين شفاف وقابل للخلع مما يسهّل التنظيف، لكنه يناسب الحالات المتوسطة وغير المعقدة. سيرشدك الدكتور طارق للخيار الأنسب.", en: "Metal braces are fixed and effective for all cases. Invisalign is clear and removable making cleaning easier, but best for mild to moderate cases. Dr. Tareq will guide you to the right option." },
+  },
+  {
+    q: { ar: "كم عدد الجلسات المطلوبة لتبييض الأسنان؟", en: "How many sessions are needed for teeth whitening?" },
+    a: { ar: "في الغالب جلسة واحدة مدتها 45–60 دقيقة كافية لنتائج ملحوظة. قد نوصي بجلسة ثانية للحالات التي تتطلب تبييضاً إضافياً.", en: "Usually a single 45–60 minute session delivers noticeable results. A second session may be recommended for cases requiring extra whitening." },
+  },
+  {
+    q: { ar: "كيف أحجز موعداً؟", en: "How do I book an appointment?" },
+    a: { ar: "يمكنك التواصل معنا عبر واتساب على الرقم 0796317293، أو ملء نموذج الحجز أسفل الصفحة، وسيتواصل معك فريقنا خلال ساعات.", en: "You can contact us via WhatsApp at 0796317293, or fill in the booking form below, and our team will get back to you within hours." },
+  },
+  {
+    q: { ar: "ما هي أوقات عمل العيادة؟", en: "What are the clinic's working hours?" },
+    a: { ar: "تعمل العيادة من السبت حتى الخميس من 9 صباحاً حتى 8 مساءً. يوم الجمعة إجازة أسبوعية.", en: "The clinic is open Saturday through Thursday from 9:00 AM to 8:00 PM. Friday is our weekly day off." },
+  },
+];
+
+type FaqItem = { id?: number; question_ar: string; question_en: string; answer_ar: string; answer_en: string };
+
+const FAQ = () => {
+  const { lang } = useLang();
+  const [open, setOpen] = useState<number | null>(null);
+  const [items, setItems] = useState<FaqItem[]>(
+    FAQ_DATA.map((d, i) => ({ id: i, question_ar: d.q.ar, question_en: d.q.en, answer_ar: d.a.ar, answer_en: d.a.en }))
+  );
+
+  useEffect(() => {
+    fetch("/api/faq")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.success && d.items?.length > 0) setItems(d.items); })
+      .catch(() => {});
+  }, []);
+
+  return (
+    <section className="py-20 bg-gray-50" id="faq">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <span className="inline-flex items-center gap-2 bg-blue-100 text-[#1e5799] text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
+            <MessageCircle className="w-4 h-4" />
+            {tx("faqTag", lang)}
+          </span>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
+            {tx("faqTitle", lang)}
+          </h2>
+          <p className="text-gray-500 text-lg">{tx("faqSub", lang)}</p>
+        </motion.div>
+
+        <div className="space-y-3">
+          {items.map((item, i) => (
+            <motion.div
+              key={item.id ?? i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.07 }}
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+            >
+              <button
+                onClick={() => setOpen(open === i ? null : i)}
+                className="w-full flex items-center justify-between gap-3 px-5 py-4 text-start"
+              >
+                <span className="font-semibold text-gray-800 text-base">
+                  {lang === "ar" ? item.question_ar : item.question_en}
+                </span>
+                <motion.div
+                  animate={{ rotate: open === i ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-[#1e5799] shrink-0"
+                >
+                  <ChevronLeft className={cn("w-5 h-5", lang === "ar" ? "rotate-[-90deg]" : "rotate-90")} />
+                </motion.div>
+              </button>
+              <AnimatePresence initial={false}>
+                {open === i && (
+                  <motion.div
+                    key="content"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.35, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-5 pb-5 text-gray-600 leading-relaxed border-t border-gray-50 pt-3">
+                      {lang === "ar" ? item.answer_ar : item.answer_en}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ─── Floating Buttons (WhatsApp + Back to Top) ────────────────────────────────
+const FloatingButtons = () => {
+  const [showTop, setShowTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setShowTop(window.scrollY > 400);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <div className="fixed bottom-6 end-5 z-50 flex flex-col gap-3 items-end">
+      {/* Back to Top */}
+      <AnimatePresence>
+        {showTop && (
+          <motion.button
+            key="top"
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="w-11 h-11 rounded-full bg-white border border-gray-200 shadow-lg flex items-center justify-center text-[#1e5799] hover:bg-blue-50 transition-colors"
+            title="Back to top"
+          >
+            <ChevronLeft className="w-5 h-5 -rotate-90" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* WhatsApp */}
+      <motion.a
+        href="https://wa.me/962796317293"
+        target="_blank"
+        rel="noreferrer"
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.5 }}
+        className="relative w-14 h-14 rounded-full flex items-center justify-center shadow-xl"
+        title="WhatsApp"
+        style={{ backgroundColor: "#25D366" }}
+      >
+        {/* pulse ring */}
+        <span className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-30" />
+        <svg viewBox="0 0 32 32" className="w-7 h-7 fill-white relative z-10">
+          <path d="M16 0C7.163 0 0 7.163 0 16c0 2.822.736 5.468 2.025 7.77L0 32l8.44-2.207A15.93 15.93 0 0 0 16 32c8.837 0 16-7.163 16-16S24.837 0 16 0zm8.07 22.29c-.34.957-1.99 1.83-2.72 1.948-.694.11-1.57.156-2.532-.16a22.86 22.86 0 0 1-2.295-.847C12.6 21.63 10.1 18.5 9.9 18.24c-.198-.262-1.62-2.155-1.62-4.113s1.026-2.92 1.39-3.32c.363-.4.794-.5 1.06-.5.264 0 .528.002.76.014.243.013.57-.092.89.68.34.8 1.16 2.76 1.26 2.96.1.2.166.433.033.7-.133.265-.2.43-.397.662-.197.232-.415.52-.594.698-.197.198-.403.412-.173.808.23.397 1.022 1.686 2.194 2.73 1.507 1.344 2.778 1.76 3.174 1.958.397.198.63.165.863-.1.232-.264.993-1.16 1.258-1.557.264-.397.53-.33.893-.198.364.132 2.316 1.092 2.713 1.29.397.198.663.297.76.463.1.165.1.957-.24 1.914z" />
+        </svg>
+      </motion.a>
+    </div>
+  );
+};
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function Home() {
   const [lang, setLang] = useState<Lang>("ar");
+  const { get } = useSiteContent();
+  const announceEnabled = get("announce_enabled", "true") !== "false";
+  const [showAnnounce, setShowAnnounce] = useState(true);
 
-  // Update HTML dir when language changes
   useEffect(() => {
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = lang;
@@ -1476,6 +1689,19 @@ export default function Home() {
   return (
     <LangContext.Provider value={{ lang, setLang }}>
       <div className={cn("min-h-screen", lang === "en" ? "font-[Inter]" : "")}>
+        <AnimatePresence>
+          {showAnnounce && announceEnabled && (
+            <motion.div
+              key="announce"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <AnnouncementBar onDismiss={() => setShowAnnounce(false)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
         <Navbar />
         <main>
           <Hero />
@@ -1485,9 +1711,11 @@ export default function Home() {
           <Gallery />
           <Testimonials />
           <ReviewForm />
+          <FAQ />
           <Contact />
         </main>
         <Footer />
+        <FloatingButtons />
       </div>
     </LangContext.Provider>
   );

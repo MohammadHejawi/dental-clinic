@@ -4,12 +4,14 @@ import {
   Loader2, Trash2, MessageSquare, RefreshCw, Globe, Plus, Edit2,
   X, ImageIcon, Layers, ChevronUp, ChevronDown, Eye, EyeOff,
   Smile, ShieldCheck, Droplets, Activity, Sparkles, Stethoscope,
-  Heart, Zap, Shield, Award, Crown,
+  Heart, Zap, Shield, Award, Crown, MessageCircle,
 } from "lucide-react";
 import { useSiteContent } from "@/contexts/SiteContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = "contact" | "doctor" | "hero" | "services" | "gallery" | "images" | "reviews" | "texts" | "stats";
+type Tab = "contact" | "doctor" | "hero" | "services" | "gallery" | "images" | "reviews" | "texts" | "stats" | "announce" | "faq";
+
+type DbFaqItem = { id: number; question_ar: string; question_en: string; answer_ar: string; answer_en: string; sort_order: number; active: boolean };
 
 type DbReview = { id: number; name: string; rating: number; comment: string; created_at: string };
 
@@ -41,6 +43,8 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "services", label: "الخدمات",    icon: <Layers        className="w-4 h-4" /> },
   { id: "gallery",  label: "المعرض",     icon: <ImageIcon     className="w-4 h-4" /> },
   { id: "reviews",  label: "التقييمات",  icon: <MessageSquare className="w-4 h-4" /> },
+  { id: "announce", label: "الإعلانات",  icon: <Globe         className="w-4 h-4" /> },
+  { id: "faq",      label: "الأسئلة",    icon: <MessageCircle className="w-4 h-4" /> },
 ];
 
 const ICON_OPTIONS = [
@@ -131,6 +135,18 @@ export default function Admin() {
   const [textsSaving,      setTextsSaving]      = useState(false);
   const [openGroups,       setOpenGroups]       = useState<Set<string>>(new Set(["nav", "stats"]));
 
+  // FAQ
+  const [faqItems,         setFaqItems]         = useState<DbFaqItem[]>([]);
+  const [faqLoading,       setFaqLoading]       = useState(false);
+  const [editingFaq,       setEditingFaq]       = useState<number | "new" | null>(null);
+  const [faqForm,          setFaqForm]          = useState({ question_ar: "", question_en: "", answer_ar: "", answer_en: "", sort_order: 99 });
+  const [savingFaq,        setSavingFaq]        = useState(false);
+  const [deletingFaq,      setDeletingFaq]      = useState<number | null>(null);
+  const [faqError,         setFaqError]         = useState<string | null>(null);
+
+  // Announce save
+  const [announceSaving,   setAnnounceSaving]   = useState(false);
+
   useEffect(() => {
     if (Object.keys(content).length > 0) setFields(content);
   }, [content]);
@@ -180,7 +196,72 @@ export default function Admin() {
     if (tab === "services") fetchServices();
     if (tab === "gallery")  fetchGallery();
     if (tab === "images")   fetchClinicImages();
+    if (tab === "faq")      fetchFaq();
   }, [authed, tab]);
+
+  // ── FAQ handlers ──
+  const fetchFaq = useCallback(async () => {
+    setFaqLoading(true);
+    try {
+      const d = await fetch("/api/faq").then(r => r.json());
+      if (d.success) setFaqItems(d.items);
+    } finally { setFaqLoading(false); }
+  }, []);
+
+  const saveFaq = async () => {
+    if (!faqForm.question_ar || !faqForm.question_en || !faqForm.answer_ar || !faqForm.answer_en) {
+      setFaqError("الرجاء تعبئة جميع الحقول"); setTimeout(() => setFaqError(null), 4000); return;
+    }
+    setSavingFaq(true); setFaqError(null);
+    try {
+      if (editingFaq === "new") {
+        const d = await fetch("/api/faq", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password, ...faqForm }),
+        }).then(r => r.json());
+        if (d.success) { setFaqItems(prev => [...prev, d.item]); setEditingFaq(null); }
+        else throw new Error(d.error || "فشل الحفظ");
+      } else {
+        const d = await fetch(`/api/faq/${editingFaq}`, {
+          method: "PUT", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password, ...faqForm }),
+        }).then(r => r.json());
+        if (d.success) { setFaqItems(prev => prev.map(f => f.id === editingFaq ? d.item : f)); setEditingFaq(null); }
+        else throw new Error(d.error || "فشل التعديل");
+      }
+    } catch (e: any) {
+      setFaqError(e?.message || "تعذر الاتصال"); setTimeout(() => setFaqError(null), 5000);
+    } finally { setSavingFaq(false); }
+  };
+
+  const deleteFaq = async (id: number) => {
+    if (!confirm("هل أنت متأكد من حذف هذا السؤال؟")) return;
+    setDeletingFaq(id);
+    try {
+      await fetch(`/api/faq/${id}`, {
+        method: "DELETE", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      setFaqItems(prev => prev.filter(f => f.id !== id));
+    } finally { setDeletingFaq(null); }
+  };
+
+  // ── Announce save ──
+  const saveAnnounce = async () => {
+    setAnnounceSaving(true);
+    try {
+      const keys = ["announce_enabled", "announce_badge_ar", "announce_badge_en", "announce_text_ar", "announce_text_en", "announce_btn_ar", "announce_btn_en"];
+      const updates: Record<string, string> = {};
+      keys.forEach(k => { updates[k] = fields[k] ?? ""; });
+      const res = await fetch("/api/content", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, updates }),
+      });
+      const data = await res.json();
+      if (data.success) { refresh(); setMsg({ type: "success", text: "تم حفظ إعدادات الإعلانات ✓" }); setTimeout(() => setMsg(null), 4000); }
+      else setMsg({ type: "error", text: data.error || "خطأ في الحفظ" });
+    } finally { setAnnounceSaving(false); }
+  };
 
   // ── Auth ──
   const handleLogin = async (e: React.FormEvent) => {
@@ -1487,6 +1568,176 @@ export default function Admin() {
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ══ ANNOUNCE ════════════════════════════════════════════════════════ */}
+        {tab === "announce" && (
+          <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6">
+            <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 pb-4 border-b border-slate-100">
+              <Globe className="w-5 h-5 text-blue-600" /> شريط الإعلانات
+            </h2>
+
+            {/* Toggle */}
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+              <div>
+                <p className="font-semibold text-slate-800">تفعيل شريط الإعلانات</p>
+                <p className="text-sm text-slate-500 mt-0.5">يُخفي أو يُظهر الشريط الأزرق في أعلى الصفحة</p>
+              </div>
+              <button
+                onClick={() => setField("announce_enabled", fields["announce_enabled"] === "false" ? "true" : "false")}
+                className={`relative w-12 h-6 rounded-full transition-colors ${(fields["announce_enabled"] ?? get("announce_enabled", "true")) !== "false" ? "bg-blue-600" : "bg-slate-300"}`}
+              >
+                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${(fields["announce_enabled"] ?? get("announce_enabled", "true")) !== "false" ? "right-0.5" : "left-0.5"}`} />
+              </button>
+            </div>
+
+            {/* Badge */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              {field("announce_badge_ar", "نص البادج (عربي) — مثال: عرض خاص", false, "rtl")}
+              {field("announce_badge_en", "Badge text (English) — e.g. Special Offer", false, "ltr")}
+            </div>
+
+            {/* Main text */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              {field("announce_text_ar", "النص الرئيسي (عربي)", false, "rtl")}
+              {field("announce_text_en", "Main text (English)", false, "ltr")}
+            </div>
+
+            {/* Button */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              {field("announce_btn_ar", "نص الزر (عربي) — مثال: احجز الآن", false, "rtl")}
+              {field("announce_btn_en", "Button text (English) — e.g. Book Now", false, "ltr")}
+            </div>
+
+            {/* Preview */}
+            <div className="rounded-2xl overflow-hidden border border-slate-200">
+              <p className="text-xs text-slate-400 px-4 pt-3 pb-1 font-semibold">معاينة مباشرة:</p>
+              <div className="bg-gradient-to-r from-[#1a3a5c] via-[#1e5799] to-[#1a3a5c] text-white text-sm py-2 px-4 flex items-center justify-center gap-2 flex-wrap">
+                <span className="bg-[#3b82f6] text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                  {fields["announce_badge_ar"] || get("announce_badge_ar", "عرض خاص")}
+                </span>
+                <span className="text-white/90">{fields["announce_text_ar"] || get("announce_text_ar", "احجز موعد واستفد من استشارة مجانية!")}</span>
+                <span className="bg-white text-[#1e5799] text-xs font-bold px-3 py-1 rounded-full">
+                  {fields["announce_btn_ar"] || get("announce_btn_ar", "احجز الآن")}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <div>
+                {msg && <div className={`flex items-center gap-2 text-sm font-semibold ${msg.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                  {msg.type === "success" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />} {msg.text}
+                </div>}
+              </div>
+              <button onClick={saveAnnounce} disabled={announceSaving}
+                className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-60 transition">
+                {announceSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                {announceSaving ? "جاري الحفظ..." : "حفظ الإعدادات"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ══ FAQ ══════════════════════════════════════════════════════════════ */}
+        {tab === "faq" && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5 text-blue-600" /> الأسئلة الشائعة
+                  <span className="text-sm font-normal text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{faqItems.length} سؤال</span>
+                </h2>
+                <button onClick={() => { setFaqForm({ question_ar: "", question_en: "", answer_ar: "", answer_en: "", sort_order: 99 }); setEditingFaq("new"); }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition">
+                  <Plus className="w-4 h-4" /> إضافة سؤال
+                </button>
+              </div>
+
+              {faqLoading ? (
+                <div className="text-center py-12"><Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" /></div>
+              ) : faqItems.length === 0 ? (
+                <div className="text-center py-12 bg-slate-50 rounded-2xl">
+                  <MessageCircle className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500 font-semibold">لا توجد أسئلة بعد</p>
+                  <p className="text-slate-400 text-sm mt-1">يتم عرض الأسئلة الافتراضية من الكود</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {faqItems.map(item => (
+                    <div key={item.id} className="flex items-start gap-3 p-4 rounded-2xl border border-slate-100 bg-slate-50 hover:bg-white transition">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-800 text-sm">{item.question_ar}</p>
+                        <p className="text-xs text-slate-400 mt-0.5 truncate">{item.question_en}</p>
+                        <p className="text-slate-600 text-sm mt-2 leading-relaxed line-clamp-2">{item.answer_ar}</p>
+                      </div>
+                      <div className="flex gap-1.5 flex-shrink-0">
+                        <button onClick={() => { setFaqForm({ question_ar: item.question_ar, question_en: item.question_en, answer_ar: item.answer_ar, answer_en: item.answer_en, sort_order: item.sort_order }); setEditingFaq(item.id); }}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs bg-white border border-slate-200 text-slate-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition">
+                          <Edit2 className="w-3.5 h-3.5" /> تعديل
+                        </button>
+                        <button onClick={() => deleteFaq(item.id)} disabled={deletingFaq === item.id}
+                          className="flex items-center justify-center w-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition disabled:opacity-50">
+                          {deletingFaq === item.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* FAQ Form */}
+            {editingFaq !== null && (
+              <div className="bg-white rounded-3xl border border-blue-200 p-6 shadow-sm space-y-4">
+                <h3 className="font-black text-slate-900 text-base pb-3 border-b border-slate-100">
+                  {editingFaq === "new" ? "✦ إضافة سؤال جديد" : "تعديل السؤال"}
+                </h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold text-slate-600">السؤال (عربي) *</label>
+                    <input dir="rtl" value={faqForm.question_ar} onChange={e => setFaqForm(p => ({ ...p, question_ar: e.target.value }))}
+                      placeholder="ما هو سعر زراعة الأسنان؟"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition text-slate-800 text-sm" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold text-slate-600">Question (English) *</label>
+                    <input dir="ltr" value={faqForm.question_en} onChange={e => setFaqForm(p => ({ ...p, question_en: e.target.value }))}
+                      placeholder="What is the cost of dental implants?"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition text-slate-800 text-sm" />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold text-slate-600">الإجابة (عربي) *</label>
+                  <textarea dir="rtl" rows={3} value={faqForm.answer_ar} onChange={e => setFaqForm(p => ({ ...p, answer_ar: e.target.value }))}
+                    placeholder="اكتب الإجابة بالعربية..."
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition resize-none text-slate-800 text-sm" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold text-slate-600">Answer (English) *</label>
+                  <textarea dir="ltr" rows={3} value={faqForm.answer_en} onChange={e => setFaqForm(p => ({ ...p, answer_en: e.target.value }))}
+                    placeholder="Write the answer in English..."
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition resize-none text-slate-800 text-sm" />
+                </div>
+                <div className="flex flex-col gap-1.5 w-32">
+                  <label className="text-sm font-semibold text-slate-600">الترتيب</label>
+                  <input type="number" value={faqForm.sort_order} onChange={e => setFaqForm(p => ({ ...p, sort_order: Number(e.target.value) }))}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition text-slate-800 text-sm" />
+                </div>
+                {faqError && <p className="text-red-600 text-sm flex items-center gap-1"><AlertCircle className="w-4 h-4" />{faqError}</p>}
+                <div className="flex gap-3 pt-2">
+                  <button onClick={saveFaq} disabled={savingFaq}
+                    className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-60 transition text-sm">
+                    {savingFaq ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    {savingFaq ? "جاري الحفظ..." : "حفظ"}
+                  </button>
+                  <button onClick={() => setEditingFaq(null)}
+                    className="px-6 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 transition text-sm font-semibold">
+                    إلغاء
+                  </button>
+                </div>
               </div>
             )}
           </div>
