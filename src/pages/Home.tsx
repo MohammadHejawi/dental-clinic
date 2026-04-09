@@ -538,101 +538,90 @@ const Hero = () => {
   const { get } = useSiteContent();
   const tx = useTx();
   return (
-    <section id="hero" className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-gradient-to-br from-white via-blue-50 to-sky-100">
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-sky-200 rounded-full mix-blend-multiply filter blur-[100px] opacity-40" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-100 rounded-full mix-blend-multiply filter blur-[100px] opacity-50" />
+    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* ── Video Background ── */}
+      <video
+        className="absolute inset-0 w-full h-full object-cover"
+        src="/hero-bg.mp4"
+        autoPlay
+        loop
+        muted
+        playsInline
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          {/* Text */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={stagger}
-            className={cn("text-center", lang === "ar" ? "lg:text-right" : "lg:text-left")}
-          >
-            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-sm mb-6">
-              <Sparkles className="w-4 h-4 flex-shrink-0" />
-              <span>{get(`hero_tag_${lang}`, tx("heroTag", lang))}</span>
-            </motion.div>
+      {/* ── Overlay gradient ── */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-900/75 via-slate-900/60 to-slate-900/80" />
 
-            <motion.h1 variants={fadeInUp} className="text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 leading-[1.15] mb-6">
-              {tx("heroTitle1", lang)}<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-700">
-                {tx("heroTitle2", lang)}
-              </span>
-            </motion.h1>
+      {/* ── Decorative top line ── */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-sky-400 to-primary" />
 
-            {/* SEO H2 – keywords for search engines */}
-            {lang === "ar" && (
-              <h2 className="sr-only">
-                طبيب زراعة أسنان في اربد – أفضل دكتور تجميل أسنان اربد – زراعة الأسنان في الأردن – ابتسامة هوليود اربد
-              </h2>
-            )}
+      {/* ── Content ── */}
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-40 text-center">
+        <motion.div initial="hidden" animate="visible" variants={stagger}>
 
-            <motion.p variants={fadeInUp} className="text-lg md:text-xl text-slate-600 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              {get(`hero_sub_${lang}`, tx("heroSub", lang))}
-            </motion.p>
-
-            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <a href="#contact" className="px-8 py-4 rounded-full bg-primary text-white font-bold text-lg shadow-xl shadow-primary/30 hover:shadow-2xl hover:-translate-y-1 transition-all text-center">
-                {tx("heroBtn1", lang)}
-              </a>
-              <a href="#services" className="px-8 py-4 rounded-full bg-white border-2 border-slate-200 text-slate-700 font-bold text-lg hover:border-primary hover:text-primary transition-all text-center">
-                {tx("heroBtn2", lang)}
-              </a>
-            </motion.div>
-
-            {/* Stats Row */}
-            <motion.div variants={fadeInUp} className="flex flex-wrap gap-8 mt-12 justify-center lg:justify-start">
-              {[
-                { num: get("stat1_num", "21+"),  label: tx("stat1Label") },
-                { num: get("stat3_num", "8"),     label: tx("stat3Label") },
-              ].map((s, i) => (
-                <div key={i} className="text-center">
-                  <p className="text-3xl font-black text-primary">{s.num}</p>
-                  <p className="text-sm text-slate-500 font-semibold mt-1">{s.label}</p>
-                </div>
-              ))}
-            </motion.div>
+          {/* Badge */}
+          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/25 text-white font-bold text-sm mb-8">
+            <Sparkles className="w-4 h-4 flex-shrink-0 text-sky-300" />
+            <span>{get(`hero_tag_${lang}`, tx("heroTag", lang))}</span>
           </motion.div>
 
-          {/* Image */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.9, delay: 0.2 }}
-            className="relative"
-          >
-            <div className="relative rounded-[3rem] overflow-hidden shadow-2xl shadow-blue-900/15 border-8 border-white">
-              <img
-                src={resolveImg(get("hero_image", "gallery-local://hero-dentist.png"))}
-                alt={lang === "ar" ? "عيادة الأسنان" : "Dental Clinic"}
-                className="w-full h-full object-cover aspect-[4/3]"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent" />
-            </div>
-            {/* Floating badge */}
-            <motion.div
-              initial={{ opacity: 0, x: lang === "ar" ? -50 : 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.9, type: "spring" }}
-              className={cn(
-                "absolute -bottom-6 bg-white p-5 rounded-2xl shadow-xl flex items-center gap-4 border border-slate-100",
-                lang === "ar" ? "-right-4 md:-right-8" : "-left-4 md:-left-8"
-              )}
-            >
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-2xl font-black text-slate-900">{get("stat1_num", "21+")}</p>
-                <p className="text-sm font-semibold text-slate-500">{tx("heroYears")}</p>
-              </div>
-            </motion.div>
+          {/* H1 */}
+          <motion.h1 variants={fadeInUp} className="text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.2] mb-6 drop-shadow-lg">
+            {tx("heroTitle1", lang)}<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 to-blue-400">
+              {tx("heroTitle2", lang)}
+            </span>
+          </motion.h1>
+
+          {/* SEO hidden */}
+          {lang === "ar" && (
+            <h2 className="sr-only">
+              طبيب زراعة أسنان في اربد – أفضل دكتور تجميل أسنان اربد – زراعة الأسنان في الأردن – ابتسامة هوليود اربد
+            </h2>
+          )}
+
+          {/* Subtitle */}
+          <motion.p variants={fadeInUp} className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed">
+            {get(`hero_sub_${lang}`, tx("heroSub", lang))}
+          </motion.p>
+
+          {/* Buttons */}
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+            <a href="#contact" className="px-9 py-4 rounded-full bg-primary text-white font-bold text-lg shadow-2xl shadow-primary/40 hover:shadow-primary/60 hover:-translate-y-1 transition-all text-center">
+              {tx("heroBtn1", lang)}
+            </a>
+            <a href="#services" className="px-9 py-4 rounded-full bg-white/15 backdrop-blur-sm border-2 border-white/30 text-white font-bold text-lg hover:bg-white/25 transition-all text-center">
+              {tx("heroBtn2", lang)}
+            </a>
           </motion.div>
-        </div>
+
+          {/* Stats */}
+          <motion.div variants={fadeInUp} className="flex flex-wrap gap-10 justify-center">
+            {[
+              { num: get("stat1_num", "21+"), label: tx("stat1Label") },
+              { num: get("stat3_num", "8"),   label: tx("stat3Label") },
+            ].map((s, i) => (
+              <div key={i} className="text-center">
+                <div className="w-px h-12 bg-white/20 mx-auto mb-3 hidden sm:block" />
+                <p className="text-4xl font-black text-white drop-shadow">{s.num}</p>
+                <p className="text-sm text-white/70 font-semibold mt-1">{s.label}</p>
+              </div>
+            ))}
+          </motion.div>
+
+        </motion.div>
       </div>
+
+      {/* ── Scroll indicator ── */}
+      <motion.div
+        animate={{ y: [0, 10, 0] }}
+        transition={{ repeat: Infinity, duration: 1.8 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-white/50"
+      >
+        <div className="w-6 h-9 rounded-full border-2 border-white/30 flex items-start justify-center pt-1.5">
+          <div className="w-1 h-2.5 bg-white/60 rounded-full" />
+        </div>
+      </motion.div>
     </section>
   );
 };
