@@ -439,10 +439,10 @@ const Navbar = ({
             className="w-14 h-14 object-contain"
           />
           <div>
-            <h1 className="text-base font-extrabold text-slate-900 leading-tight tracking-tight">
+            <h1 className={cn("text-base font-extrabold leading-tight tracking-tight", scrolled ? "text-slate-900" : "text-white")}>
               {lang === "ar" ? "الدكتور طارق الهيجاوي" : "Dr. Tareq Al-Hijawi"}
             </h1>
-            <p className="text-xs text-primary font-bold tracking-wide">
+            <p className={cn("text-xs font-bold tracking-wide", scrolled ? "text-primary" : "text-sky-300")}>
               {lang === "ar" ? "طب وزراعة وتجميل الأسنان" : "Dental, Implant & Cosmetic"}
             </p>
           </div>
@@ -454,7 +454,7 @@ const Navbar = ({
             <a
               key={key}
               href={href}
-              className="text-sm text-slate-600 hover:text-primary font-semibold transition-colors"
+              className={cn("text-sm font-semibold transition-colors hover:text-primary", scrolled ? "text-slate-600" : "text-white")}
             >
               {tx(key, lang)}
             </a>
@@ -466,7 +466,7 @@ const Navbar = ({
           {/* Language Switcher */}
           <button
             onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-200 text-slate-600 hover:border-primary hover:text-primary text-sm font-semibold transition-all"
+            className={cn("flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-semibold transition-all hover:border-primary hover:text-primary", scrolled ? "border-slate-200 text-slate-600" : "border-white/40 text-white")}
           >
             <Globe className="w-4 h-4" />
             {lang === "ar" ? "EN" : "عربي"}
@@ -483,12 +483,12 @@ const Navbar = ({
         <div className="lg:hidden flex items-center gap-2">
           <button
             onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-            className="px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 text-xs font-bold"
+            className={cn("px-3 py-1.5 rounded-full border text-xs font-bold transition-all", scrolled ? "border-slate-200 text-slate-600" : "border-white/40 text-white")}
           >
             {lang === "ar" ? "EN" : "AR"}
           </button>
           <button
-            className="text-slate-700 p-2"
+            className={cn("p-2 transition-colors", scrolled ? "text-slate-700" : "text-white")}
             onClick={() => setMenuOpen(!menuOpen)}
           >
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
