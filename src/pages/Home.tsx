@@ -989,60 +989,20 @@ const Testimonials = () => {
       .catch(() => {});
   }, []);
 
-  const staticReviews = [
-    {
-      nameAr: "سارة أحمد", nameEn: "Sara Ahmed",
-      treatAr: "تبييض الأسنان", treatEn: "Teeth Whitening",
-      textAr: "تجربة رائعة جداً! الدكتور طارق يده خفيفة جداً والنتيجة كانت مبهرة من أول جلسة. العيادة نظيفة والتعامل راقٍ.",
-      textEn: "Amazing experience! Dr. Tareq has a very gentle touch and the results were stunning from the first session.",
-      initials: "س.أ", rating: 5, color: "bg-blue-100 text-primary",
-    },
-    {
-      nameAr: "محمد محمود", nameEn: "Mohammed Mahmoud",
-      treatAr: "زراعة الأسنان", treatEn: "Dental Implants",
-      textAr: "كنت خائفاً جداً من فكرة الزراعة، لكن الدكتور طمأنني وشرح لي كل الخطوات. العملية تمت بدون ألم.",
-      textEn: "I was very scared about implants, but Dr. Tareq reassured me and explained every step. Painless and natural.",
-      initials: "م.م", rating: 5, color: "bg-blue-100 text-primary",
-    },
-    {
-      nameAr: "ديما خالد", nameEn: "Dima Khalid",
-      treatAr: "ابتسامة هوليود", treatEn: "Hollywood Smile",
-      textAr: "غيّرت ابتسامتي حياتي! شكراً للدكتور طارق على الدقة المتناهية والاهتمام بأدق التفاصيل.",
-      textEn: "My smile changed my life! Thank you Dr. Tareq for your incredible precision and attention to detail.",
-      initials: "د.خ", rating: 5, color: "bg-blue-100 text-primary",
-    },
-    {
-      nameAr: "عمر عبدالله", nameEn: "Omar Abdullah",
-      treatAr: "علاج العصب", treatEn: "Root Canal",
-      textAr: "أفضل دكتور أسنان تعاملت معه. تخلصت من الألم المزعج في جلسة واحدة فقط.",
-      textEn: "The best dentist I've ever dealt with. Got rid of the painful toothache in just one session.",
-      initials: "ع.ع", rating: 5, color: "bg-blue-100 text-primary",
-    },
-    {
-      nameAr: "نور إبراهيم", nameEn: "Nour Ibrahim",
-      treatAr: "تقويم الأسنان", treatEn: "Orthodontics",
-      textAr: "بعد سنتين من التقويم مع الدكتور طارق، أسناني أصبحت منتظمة تماماً.",
-      textEn: "After two years of braces with Dr. Tareq, my teeth are perfectly aligned.",
-      initials: "ن.إ", rating: 5, color: "bg-blue-100 text-primary",
-    },
-  ];
-
   const getInitials = (name: string) => {
     const parts = name.trim().split(" ");
     return parts.length >= 2 ? `${parts[0][0]}.${parts[1][0]}` : name.slice(0, 2);
   };
 
-  // Combine DB reviews (most recent first) + static reviews
-  const dbCards = dbReviews.map(r => ({
+  const allReviews = dbReviews.map(r => ({
     nameAr: r.name, nameEn: r.name,
     treatAr: "عميل العيادة", treatEn: "Clinic Patient",
     textAr: r.comment, textEn: r.comment,
     initials: getInitials(r.name),
     rating: r.rating,
-    color: "bg-green-100 text-green-600",
+    color: "bg-emerald-100 text-emerald-600",
   }));
 
-  const allReviews = [...dbCards, ...staticReviews];
   const visibleReviews = expanded ? allReviews : allReviews.slice(0, 3);
   const hasMore = allReviews.length > 3;
 
@@ -1069,6 +1029,16 @@ const Testimonials = () => {
             </span>
           </motion.div>
         </motion.div>
+
+        {/* Empty state */}
+        {allReviews.length === 0 && (
+          <div className="text-center py-16 text-slate-400">
+            <Star className="w-12 h-12 mx-auto mb-4 text-slate-200 fill-current" />
+            <p className="text-lg font-semibold">
+              {lang === "ar" ? "لا توجد تقييمات بعد — كن أول من يشاركنا رأيه!" : "No reviews yet — be the first to share your experience!"}
+            </p>
+          </div>
+        )}
 
         {/* Reviews Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
