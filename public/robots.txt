@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Block admin panel from search engines
+Disallow: /admin
+Disallow: /admin/
+
+# Sitemap location
+Sitemap: https://www.drtareqalhijawi.com/sitemap.xml
