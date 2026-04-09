@@ -149,16 +149,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // ── 1. Try Google Gemini (Vercel: set GEMINI_API_KEY) ─────────────────────
   if (gemini) {
     try {
-      const model = gemini.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const model = gemini.getGenerativeModel({
+        model: "gemini-1.5-flash",
+        systemInstruction: isEn ? SYSTEM_EN : SYSTEM_AR,
+      });
       const history = messages.slice(0, -1).map((m: any) => ({
         role: m.role === "assistant" ? "model" : "user",
         parts: [{ text: m.content }],
       }));
-      const chat = model.startChat({
-        history,
-        systemInstruction: { parts: [{ text: isEn ? SYSTEM_EN : SYSTEM_AR }] },
-        generationConfig: { maxOutputTokens: 400 },
-      });
+      const chat = model.startChat({ history });
       const result = await chat.sendMessage(userText);
       const reply = result.response.text();
       return res.json({ reply });
