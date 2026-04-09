@@ -1035,7 +1035,7 @@ export default function Admin() {
                   const res = await fetch("/api/content", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ password: localStorage.getItem("admin_pw") ?? "", updates: fields }),
+                    body: JSON.stringify({ password, updates: fields }),
                   });
                   if (!res.ok) throw new Error();
                   await refresh();
