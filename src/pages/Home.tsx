@@ -1729,7 +1729,7 @@ const FloatingButtons = () => {
 export default function Home() {
   const [lang, setLang] = useState<Lang>("ar");
   const { get } = useSiteContent();
-  const announceEnabled = get("announce_enabled", "true") !== "false";
+  const announceEnabled = get("announce_enabled", "false") === "true";
   const [showAnnounce, setShowAnnounce] = useState(true);
 
   useEffect(() => {
