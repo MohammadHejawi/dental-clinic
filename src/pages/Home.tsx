@@ -597,15 +597,15 @@ const Hero = () => {
           </motion.div>
 
           {/* Stats */}
-          <motion.div variants={fadeInUp} className="flex flex-wrap gap-10 justify-center">
+          <motion.div variants={fadeInUp} className="inline-grid grid-cols-3 divide-x divide-white/20 rtl:divide-x-reverse bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl overflow-hidden">
             {[
-              { num: get("stat1_num", "21+"), label: tx("stat1Label") },
-              { num: get("stat3_num", "8"),   label: tx("stat3Label") },
+              { num: get("stat1_num", "+21"), labelAr: "عاماً خبرة", labelEn: "Years Exp." },
+              { num: get("stat2_num", "+3000"), labelAr: "مريض سعيد", labelEn: "Patients" },
+              { num: get("stat3_num", "8"), labelAr: "خدمة طبية", labelEn: "Services" },
             ].map((s, i) => (
-              <div key={i} className="text-center">
-                <div className="w-px h-12 bg-white/20 mx-auto mb-3 hidden sm:block" />
-                <p className="text-4xl font-black text-white drop-shadow">{s.num}</p>
-                <p className="text-sm text-white/70 font-semibold mt-1">{s.label}</p>
+              <div key={i} className="text-center px-7 py-4">
+                <p className="text-3xl md:text-4xl font-black text-amber-300 drop-shadow">{s.num}</p>
+                <p className="text-xs text-white/70 font-bold mt-1">{lang === "ar" ? s.labelAr : s.labelEn}</p>
               </div>
             ))}
           </motion.div>
@@ -654,36 +654,61 @@ const Services = () => {
   }, []);
 
   return (
-    <section id="services" className="py-24 bg-white relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <p className="text-primary font-bold tracking-widest uppercase text-sm mb-3">{tx("svcTag", lang)}</p>
-          <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6">{tx("svcTitle", lang)}</h2>
-          {lang === "ar" && <p className="sr-only">زراعة الأسنان في الأردن – ابتسامة هوليود اربد – تقويم أسنان – تبييض أسنان اربد</p>}
-          <p className="text-lg text-slate-600">{tx("svcSub", lang)}</p>
-        </div>
+    <section id="services" className="py-28 bg-white relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+      <div className="absolute -top-40 -end-40 w-96 h-96 rounded-full bg-blue-50 blur-3xl opacity-60 pointer-events-none" />
+      <div className="absolute -bottom-40 -start-40 w-96 h-96 rounded-full bg-sky-50 blur-3xl opacity-60 pointer-events-none" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <motion.div
+          initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}
+          className="text-center max-w-3xl mx-auto mb-20"
+        >
+          <motion.span variants={fadeInUp} className="inline-flex items-center gap-2 text-primary font-bold tracking-widest uppercase text-xs mb-4 bg-blue-50 px-4 py-2 rounded-full border border-blue-100">
+            <Smile className="w-3.5 h-3.5" />{tx("svcTag", lang)}
+          </motion.span>
+          <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl font-black text-slate-900 mb-5 leading-tight">{tx("svcTitle", lang)}</motion.h2>
+          {lang === "ar" && <p className="sr-only">زراعة الأسنان في الأردن – ابتسامة هوليود اربد – تقويم أسنان – تبييض أسنان اربد</p>}
+          <motion.p variants={fadeInUp} className="text-lg text-slate-500 leading-relaxed">{tx("svcSub", lang)}</motion.p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {services.map((svc, i) => {
             const IconComp = ICON_MAP[svc.icon] ?? Star;
             return (
               <motion.div
                 key={svc.id ?? i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-40px" }}
-                variants={fadeInUp}
-                className="group bg-slate-50 hover:bg-white rounded-3xl p-7 border border-transparent hover:border-slate-100 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 cursor-default"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ duration: 0.5, delay: i * 0.07 }}
+                whileHover={{ y: -6 }}
+                className="group relative bg-white rounded-2xl p-6 border border-slate-100 hover:border-blue-100 shadow-sm hover:shadow-xl hover:shadow-primary/8 transition-all duration-300 cursor-default overflow-hidden"
               >
-                <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-white mb-5 shadow-lg group-hover:scale-110 transition-transform bg-gradient-to-br", svc.color)}>
-                  <IconComp className="w-7 h-7" />
+                {/* Number */}
+                <span className={cn(
+                  "absolute top-4 text-7xl font-black opacity-[0.04] leading-none select-none",
+                  lang === "ar" ? "left-4" : "right-4"
+                )}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                {/* Icon */}
+                <div className={cn("w-13 h-13 w-[52px] h-[52px] rounded-xl flex items-center justify-center text-white mb-5 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 bg-gradient-to-br", svc.color)}>
+                  <IconComp className="w-6 h-6" />
                 </div>
-                <h4 className="text-lg font-bold text-slate-900 mb-3">
+                <h4 className="text-base font-bold text-slate-900 mb-2 leading-snug">
                   {lang === "ar" ? svc.title_ar : svc.title_en}
                 </h4>
-                <p className="text-slate-500 text-sm leading-relaxed">
+                <p className="text-slate-500 text-sm leading-relaxed mb-4">
                   {lang === "ar" ? svc.desc_ar : svc.desc_en}
                 </p>
+                <a href="#contact" className="inline-flex items-center gap-1 text-xs font-bold text-primary group-hover:gap-2 transition-all">
+                  {lang === "ar" ? "احجز الآن" : "Book Now"}
+                  <ChevronLeft className={cn("w-3.5 h-3.5", lang === "ar" ? "rotate-180" : "")} />
+                </a>
+                {/* Bottom accent */}
+                <div className={cn("absolute bottom-0 start-0 end-0 h-0.5 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300", svc.color)} />
               </motion.div>
             );
           })}
@@ -717,20 +742,37 @@ const About = () => {
             <motion.p variants={fadeInUp} className="text-xl text-primary font-semibold mb-6">{tx("abtTitle", lang)}</motion.p>
             <motion.p variants={fadeInUp} className="text-lg text-slate-600 mb-8 leading-relaxed">{get(`doctor_bio_${lang}`, tx("abtBio", lang))}</motion.p>
 
-            <motion.ul variants={stagger} className="space-y-4 mb-10">
+            <motion.ul variants={stagger} className="space-y-3 mb-8">
               {creds.map((k) => (
                 <motion.li key={k} variants={fadeInUp} className="flex items-center gap-3 text-slate-700 font-semibold">
-                  <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0" />
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                  </div>
                   <span>{tx(k, lang)}</span>
                 </motion.li>
               ))}
             </motion.ul>
 
+            {/* Mini stats */}
+            <motion.div variants={fadeInUp} className="grid grid-cols-3 gap-4 mb-10 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+              {[
+                { num: "+21", labelAr: "عاماً خبرة", labelEn: "Years Exp." },
+                { num: "+3K", labelAr: "مريض", labelEn: "Patients" },
+                { num: "100%", labelAr: "رضا المرضى", labelEn: "Satisfaction" },
+              ].map((s, i) => (
+                <div key={i} className={cn("text-center", i > 0 && (lang === "ar" ? "border-r border-slate-200" : "border-l border-slate-200"))}>
+                  <p className="text-2xl font-black text-primary">{s.num}</p>
+                  <p className="text-xs text-slate-500 font-semibold mt-0.5">{lang === "ar" ? s.labelAr : s.labelEn}</p>
+                </div>
+              ))}
+            </motion.div>
+
             <motion.a
               variants={fadeInUp}
               href="#contact"
-              className="inline-flex items-center justify-center px-8 py-4 rounded-full bg-slate-900 text-white font-bold hover:bg-primary transition-colors duration-300"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-slate-900 text-white font-bold hover:bg-primary transition-colors duration-300"
             >
+              <Phone className="w-4 h-4" />
               {tx("abtBtn", lang)}
             </motion.a>
           </motion.div>
@@ -1005,12 +1047,28 @@ const Testimonials = () => {
   const hasMore = allReviews.length > 3;
 
   return (
-    <section id="testimonials" className="py-24 bg-slate-50 overflow-hidden">
+    <section id="testimonials" className="py-24 bg-gradient-to-b from-white to-slate-50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <p className="text-primary font-bold tracking-widest uppercase text-sm mb-3">{tx("tstTag", lang)}</p>
-          <h3 className="text-4xl md:text-5xl font-black text-slate-900">{tx("tstTitle", lang)}</h3>
-        </div>
+        {/* Header */}
+        <motion.div
+          initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}
+          className="text-center mb-16"
+        >
+          <motion.span variants={fadeInUp} className="inline-flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest bg-blue-50 px-4 py-2 rounded-full border border-blue-100 mb-4">
+            <Star className="w-3.5 h-3.5 fill-current" />{tx("tstTag", lang)}
+          </motion.span>
+          <motion.h3 variants={fadeInUp} className="text-4xl md:text-5xl font-black text-slate-900 mb-6">{tx("tstTitle", lang)}</motion.h3>
+          {/* Aggregate rating */}
+          <motion.div variants={fadeInUp} className="inline-flex items-center gap-3 bg-amber-50 border border-amber-100 rounded-2xl px-6 py-3">
+            <div className="flex text-amber-400 gap-0.5">
+              {Array.from({ length: 5 }).map((_, j) => <Star key={j} className="w-5 h-5 fill-current" />)}
+            </div>
+            <span className="text-2xl font-black text-slate-900">5.0</span>
+            <span className="text-slate-500 font-semibold text-sm">
+              {lang === "ar" ? "· استناداً لآراء مرضانا" : "· Based on patient reviews"}
+            </span>
+          </motion.div>
+        </motion.div>
 
         {/* Reviews Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1020,30 +1078,41 @@ const Testimonials = () => {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: (i % 3) * 0.1 }}
-              className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col"
+              transition={{ delay: (i % 3) * 0.1, duration: 0.5 }}
+              whileHover={{ y: -4 }}
+              className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:border-blue-100 hover:shadow-lg transition-all duration-300 flex flex-col relative overflow-hidden"
             >
-              <div className="flex text-amber-400 mb-5">
-                {Array.from({ length: r.rating }).map((_, j) => <Star key={j} className="w-5 h-5 fill-current" />)}
-                {Array.from({ length: 5 - r.rating }).map((_, j) => <Star key={`e-${j}`} className="w-5 h-5 text-slate-200 fill-current" />)}
+              {/* Quote decoration */}
+              <span className={cn(
+                "absolute top-4 text-8xl font-black text-slate-100 leading-none select-none pointer-events-none",
+                lang === "ar" ? "left-4" : "right-4"
+              )}>"</span>
+              <div className="flex text-amber-400 mb-4 gap-0.5">
+                {Array.from({ length: r.rating }).map((_, j) => <Star key={j} className="w-4 h-4 fill-current" />)}
+                {Array.from({ length: 5 - r.rating }).map((_, j) => <Star key={`e-${j}`} className="w-4 h-4 text-slate-200 fill-current" />)}
               </div>
-              <p className="text-slate-700 text-base mb-8 leading-relaxed flex-1">
-                "{lang === "ar" ? r.textAr : r.textEn}"
+              <p className="text-slate-700 text-base mb-6 leading-relaxed flex-1 relative z-10">
+                {lang === "ar" ? r.textAr : r.textEn}
               </p>
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-base flex-shrink-0 ${r.color}`}>
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-50">
+                <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${r.color}`}>
                   {r.initials}
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900">{lang === "ar" ? r.nameAr : r.nameEn}</h4>
-                  <p className="text-sm text-slate-500">{lang === "ar" ? r.treatAr : r.treatEn}</p>
+                  <h4 className="font-bold text-slate-900 text-sm">{lang === "ar" ? r.nameAr : r.nameEn}</h4>
+                  <p className="text-xs text-slate-400 font-medium">{lang === "ar" ? r.treatAr : r.treatEn}</p>
+                </div>
+                <div className="ms-auto">
+                  <span className="text-[10px] bg-green-50 text-green-600 font-bold px-2 py-0.5 rounded-full border border-green-100">
+                    {lang === "ar" ? "✓ موثّق" : "✓ Verified"}
+                  </span>
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Expand / Collapse button */}
+        {/* Expand / Collapse */}
         {hasMore && (
           <div className="text-center mt-10">
             <button
@@ -2057,6 +2126,168 @@ const FloatingButtons = () => {
   );
 };
 
+// ─── Trust Bar ────────────────────────────────────────────────────────────────
+const TrustBar = () => {
+  const { lang } = useLang();
+  const isAr = lang === "ar";
+  const stats = [
+    { num: "+21", labelAr: "عاماً من الخبرة", labelEn: "Years of Experience", icon: Award },
+    { num: "+3,000", labelAr: "مريض سعيد", labelEn: "Happy Patients", icon: Heart },
+    { num: "8", labelAr: "خدمات متكاملة", labelEn: "Dental Services", icon: Smile },
+    { num: "5.0★", labelAr: "تقييم المرضى", labelEn: "Patient Rating", icon: Star },
+  ];
+  return (
+    <section className="bg-[#0d2341] py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 rounded-2xl overflow-hidden">
+          {stats.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="flex flex-col items-center gap-1.5 py-8 px-4 bg-[#0d2341] hover:bg-[#112a50] transition-colors"
+              >
+                <Icon className="w-6 h-6 text-amber-400 mb-1" />
+                <span className="text-3xl md:text-4xl font-black text-white">{s.num}</span>
+                <span className="text-blue-300 font-semibold text-sm text-center">{isAr ? s.labelAr : s.labelEn}</span>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ─── Why Us ───────────────────────────────────────────────────────────────────
+const WhyUs = () => {
+  const { lang } = useLang();
+  const isAr = lang === "ar";
+  const features = [
+    {
+      icon: Zap,
+      gradient: "from-amber-400 to-orange-500",
+      titleAr: "تقنيات رقمية حديثة",    titleEn: "Modern Digital Tech",
+      descAr:  "نستخدم أحدث الأجهزة الرقمية والمعدات الطبية العالمية لدقة علاج استثنائية.",
+      descEn:  "We use the latest digital devices and world-class medical equipment for exceptional precision.",
+    },
+    {
+      icon: Heart,
+      gradient: "from-rose-400 to-pink-600",
+      titleAr: "رعاية بلا ألم",          titleEn: "Pain-Free Care",
+      descAr:  "تجربة علاجية مريحة وخالية من الألم، رفاهية مريضنا أولويتنا القصوى.",
+      descEn:  "A comfortable, pain-free treatment experience — our patient's well-being is our top priority.",
+    },
+    {
+      icon: Award,
+      gradient: "from-blue-500 to-indigo-600",
+      titleAr: "خبرة موثّقة وموثوقة",   titleEn: "Proven Expertise",
+      descAr:  "+21 عاماً من التميّز وآلاف الحالات الناجحة في طب وتجميل الأسنان.",
+      descEn:  "21+ years of excellence and thousands of successful dental and cosmetic cases.",
+    },
+    {
+      icon: Shield,
+      gradient: "from-emerald-400 to-teal-600",
+      titleAr: "مواد معتمدة وضمان",     titleEn: "Certified Materials",
+      descAr:  "مواد طبية معتمدة دولياً مع ضمان كامل على جميع الأعمال التجميلية.",
+      descEn:  "Internationally certified materials with a full guarantee on all cosmetic work.",
+    },
+  ];
+  return (
+    <section className="py-24 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden">
+      <div className="absolute -top-32 end-0 w-72 h-72 rounded-full bg-blue-100/40 blur-3xl pointer-events-none" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <motion.div
+          initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}
+          className="text-center max-w-2xl mx-auto mb-16"
+        >
+          <motion.span variants={fadeInUp} className="inline-flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest bg-blue-50 px-4 py-2 rounded-full border border-blue-100 mb-4">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            {isAr ? "لماذا تختارنا؟" : "Why Choose Us?"}
+          </motion.span>
+          <motion.h3 variants={fadeInUp} className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
+            {isAr ? "الفرق الحقيقي يبدأ هنا" : "The Real Difference Starts Here"}
+          </motion.h3>
+          <motion.p variants={fadeInUp} className="text-slate-500 text-lg">
+            {isAr
+              ? "نجمع بين الخبرة الطويلة والتقنية الحديثة لنقدم لك تجربة علاجية استثنائية لا تُنسى."
+              : "We combine long experience with modern technology to deliver an exceptional, unforgettable treatment experience."}
+          </motion.p>
+        </motion.div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {features.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+                whileHover={{ y: -8 }}
+                className="group bg-white rounded-2xl p-7 border border-slate-100 hover:border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300"
+              >
+                <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg group-hover:scale-110 transition-transform bg-gradient-to-br", f.gradient)}>
+                  <Icon className="w-7 h-7" />
+                </div>
+                <h4 className="text-lg font-bold text-slate-900 mb-3">{isAr ? f.titleAr : f.titleEn}</h4>
+                <p className="text-slate-500 text-sm leading-relaxed">{isAr ? f.descAr : f.descEn}</p>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ─── Book CTA ─────────────────────────────────────────────────────────────────
+const BookCTA = () => {
+  const { lang } = useLang();
+  const isAr = lang === "ar";
+  return (
+    <section className="py-24 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0d2341] via-[#1e5799] to-[#0d3060]" />
+      {/* Decorative circles */}
+      <div className="absolute top-0 start-0 w-96 h-96 rounded-full bg-white/5 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="absolute bottom-0 end-0 w-72 h-72 rounded-full bg-white/5 translate-x-1/3 translate-y-1/3 pointer-events-none" />
+      <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0)", backgroundSize: "40px 40px" }} />
+
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+          <motion.span variants={fadeInUp} className="inline-flex items-center gap-2 bg-amber-400/20 text-amber-300 border border-amber-400/30 text-xs font-black px-4 py-2 rounded-full mb-6">
+            <Sparkles className="w-3.5 h-3.5" />
+            {isAr ? "استشارة مجانية" : "Free Consultation"}
+          </motion.span>
+          <motion.h2 variants={fadeInUp} className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight">
+            {isAr ? "ابدأ رحلتك نحو\nابتسامة أجمل" : "Start Your Journey\nToward a Better Smile"}
+          </motion.h2>
+          <motion.p variants={fadeInUp} className="text-blue-200 text-xl mb-10 leading-relaxed">
+            {isAr
+              ? "احجز استشارتك المجانية الآن مع الدكتور طارق الهيجاوي وخذ الخطوة الأولى نحو ابتسامة تغيّر حياتك."
+              : "Book your free consultation with Dr. Tareq Al-Hijawi and take the first step toward a smile that changes your life."}
+          </motion.p>
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="#contact"
+              className="px-10 py-4 rounded-full bg-amber-400 text-slate-900 font-black text-lg hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-400/30 transition-all">
+              {isAr ? "🗓 احجز مجاناً الآن" : "🗓 Book Free Now"}
+            </a>
+            <a href="https://wa.me/962796317293" target="_blank" rel="noreferrer"
+              className="px-10 py-4 rounded-full bg-white/10 backdrop-blur-sm border-2 border-white/25 text-white font-bold text-lg hover:bg-white/20 transition-all">
+              {isAr ? "💬 واتساب مباشر" : "💬 WhatsApp Direct"}
+            </a>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function Home() {
   const [lang, setLang] = useState<Lang>("ar");
@@ -2082,10 +2313,13 @@ export default function Home() {
         />
         <main>
           <Hero />
+          <TrustBar />
           <Services />
           <About />
+          <WhyUs />
           <ClinicTour />
           <Gallery />
+          <BookCTA />
           <Testimonials />
           <ReviewForm />
           <FAQ />
