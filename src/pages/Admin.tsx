@@ -8,6 +8,61 @@ import {
 } from "lucide-react";
 import { useSiteContent } from "@/contexts/SiteContent";
 
+// ─── ImageUploadButton ────────────────────────────────────────────────────────
+function ImageUploadButton({ onUpload, password }: { onUpload: (url: string) => void; password: string }) {
+  const [uploading, setUploading] = React.useState(false);
+
+  const compressAndUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const img = new Image();
+        const reader = new FileReader();
+        reader.onload = ev => {
+          img.onload = () => {
+            const MAX = 1200;
+            let { width, height } = img;
+            if (width > MAX) { height = Math.round(height * MAX / width); width = MAX; }
+            if (height > MAX) { width = Math.round(width * MAX / height); height = MAX; }
+            const canvas = document.createElement("canvas");
+            canvas.width = width; canvas.height = height;
+            canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+            resolve(dataUrl.split(",")[1]);
+          };
+          img.onerror = reject;
+          img.src = ev.target!.result as string;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, data: base64, mimeType: "image/jpeg", filename: file.name }),
+      });
+      const json = await res.json();
+      if (json.url) onUpload(json.url);
+      else alert("فشل رفع الصورة: " + (json.error || "خطأ غير معروف"));
+    } catch (e) {
+      alert("حدث خطأ أثناء الرفع");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <label className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed cursor-pointer transition-all text-sm font-bold select-none
+      ${uploading ? "border-blue-300 bg-blue-50 text-blue-400 cursor-wait" : "border-blue-400 bg-blue-50 text-blue-600 hover:bg-blue-100"}`}>
+      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+      {uploading ? "جاري الرفع..." : "رفع من الجهاز"}
+      <input type="file" accept="image/*" className="hidden" disabled={uploading}
+        onChange={e => { const f = e.target.files?.[0]; if (f) compressAndUpload(f); e.target.value = ""; }} />
+    </label>
+  );
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Tab = "contact" | "doctor" | "hero" | "services" | "gallery" | "images" | "reviews" | "texts" | "stats" | "announce" | "faq";
 
@@ -649,6 +704,7 @@ export default function Admin() {
                   onChange={e => setField("hero_image", e.target.value)}
                   placeholder="https://example.com/hero-image.jpg"
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition text-slate-800 text-sm" />
+                <ImageUploadButton password={password} onUpload={url => setField("hero_image", url)} />
               </div>
               {(fields.hero_image || get("hero_image", "")) && (
                 <div className="rounded-2xl overflow-hidden border border-slate-200 max-w-xs aspect-video">
@@ -672,6 +728,7 @@ export default function Admin() {
                   onChange={e => setField("doctor_image", e.target.value)}
                   placeholder="https://example.com/doctor-photo.jpg"
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition text-slate-800 text-sm" />
+                <ImageUploadButton password={password} onUpload={url => setField("doctor_image", url)} />
               </div>
               {(fields.doctor_image || get("doctor_image", "")) && (
                 <div className="rounded-2xl overflow-hidden border border-slate-200 max-w-[160px] aspect-[3/4]">
@@ -730,6 +787,7 @@ export default function Admin() {
                     <input dir="ltr" value={clinicForm.image_url} onChange={e => setClinicForm(p => ({ ...p, image_url: e.target.value }))}
                       placeholder="https://example.com/clinic-photo.jpg"
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition text-slate-800 text-sm" />
+                    <ImageUploadButton password={password} onUpload={url => setClinicForm(p => ({ ...p, image_url: url }))} />
                   </div>
                   {clinicForm.image_url && !clinicForm.image_url.startsWith("gallery-local://") && (
                     <div className="rounded-xl overflow-hidden border border-slate-200 w-40 aspect-video">
@@ -1433,6 +1491,7 @@ export default function Admin() {
                     <input dir="ltr" value={galForm.image_url} onChange={e => setGalForm(p => ({ ...p, image_url: e.target.value }))}
                       placeholder="https://example.com/image.jpg"
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition text-slate-800 text-sm" />
+                    <ImageUploadButton password={password} onUpload={url => setGalForm(p => ({ ...p, image_url: url }))} />
                   </div>
 
                   {/* Image preview */}
