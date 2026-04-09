@@ -890,6 +890,7 @@ const Testimonials = () => {
   const { lang } = useLang();
   const tx = useTx();
   const [dbReviews, setDbReviews] = useState<DbReview[]>([]);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     fetch("/api/reviews")
@@ -904,35 +905,35 @@ const Testimonials = () => {
       treatAr: "تبييض الأسنان", treatEn: "Teeth Whitening",
       textAr: "تجربة رائعة جداً! الدكتور طارق يده خفيفة جداً والنتيجة كانت مبهرة من أول جلسة. العيادة نظيفة والتعامل راقٍ.",
       textEn: "Amazing experience! Dr. Tareq has a very gentle touch and the results were stunning from the first session.",
-      initials: "س.أ", rating: 5,
+      initials: "س.أ", rating: 5, color: "bg-blue-100 text-primary",
     },
     {
       nameAr: "محمد محمود", nameEn: "Mohammed Mahmoud",
       treatAr: "زراعة الأسنان", treatEn: "Dental Implants",
       textAr: "كنت خائفاً جداً من فكرة الزراعة، لكن الدكتور طمأنني وشرح لي كل الخطوات. العملية تمت بدون ألم.",
       textEn: "I was very scared about implants, but Dr. Tareq reassured me and explained every step. Painless and natural.",
-      initials: "م.م", rating: 5,
+      initials: "م.م", rating: 5, color: "bg-blue-100 text-primary",
     },
     {
       nameAr: "ديما خالد", nameEn: "Dima Khalid",
       treatAr: "ابتسامة هوليود", treatEn: "Hollywood Smile",
       textAr: "غيّرت ابتسامتي حياتي! شكراً للدكتور طارق على الدقة المتناهية والاهتمام بأدق التفاصيل.",
       textEn: "My smile changed my life! Thank you Dr. Tareq for your incredible precision and attention to detail.",
-      initials: "د.خ", rating: 5,
+      initials: "د.خ", rating: 5, color: "bg-blue-100 text-primary",
     },
     {
       nameAr: "عمر عبدالله", nameEn: "Omar Abdullah",
       treatAr: "علاج العصب", treatEn: "Root Canal",
       textAr: "أفضل دكتور أسنان تعاملت معه. تخلصت من الألم المزعج في جلسة واحدة فقط.",
       textEn: "The best dentist I've ever dealt with. Got rid of the painful toothache in just one session.",
-      initials: "ع.ع", rating: 5,
+      initials: "ع.ع", rating: 5, color: "bg-blue-100 text-primary",
     },
     {
       nameAr: "نور إبراهيم", nameEn: "Nour Ibrahim",
       treatAr: "تقويم الأسنان", treatEn: "Orthodontics",
       textAr: "بعد سنتين من التقويم مع الدكتور طارق، أسناني أصبحت منتظمة تماماً.",
       textEn: "After two years of braces with Dr. Tareq, my teeth are perfectly aligned.",
-      initials: "ن.إ", rating: 5,
+      initials: "ن.إ", rating: 5, color: "bg-blue-100 text-primary",
     },
   ];
 
@@ -940,6 +941,20 @@ const Testimonials = () => {
     const parts = name.trim().split(" ");
     return parts.length >= 2 ? `${parts[0][0]}.${parts[1][0]}` : name.slice(0, 2);
   };
+
+  // Combine DB reviews (most recent first) + static reviews
+  const dbCards = dbReviews.map(r => ({
+    nameAr: r.name, nameEn: r.name,
+    treatAr: "عميل العيادة", treatEn: "Clinic Patient",
+    textAr: r.comment, textEn: r.comment,
+    initials: getInitials(r.name),
+    rating: r.rating,
+    color: "bg-green-100 text-green-600",
+  }));
+
+  const allReviews = [...dbCards, ...staticReviews];
+  const visibleReviews = expanded ? allReviews : allReviews.slice(0, 3);
+  const hasMore = allReviews.length > 3;
 
   return (
     <section id="testimonials" className="py-24 bg-slate-50 overflow-hidden">
@@ -949,25 +964,26 @@ const Testimonials = () => {
           <h3 className="text-4xl md:text-5xl font-black text-slate-900">{tx("tstTitle", lang)}</h3>
         </div>
 
-        {/* Static Reviews */}
+        {/* Reviews Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {staticReviews.slice(0, 3).map((r, i) => (
+          {visibleReviews.map((r, i) => (
             <motion.div
-              key={`static-${i}`}
+              key={i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ delay: (i % 3) * 0.1 }}
               className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col"
             >
               <div className="flex text-amber-400 mb-5">
                 {Array.from({ length: r.rating }).map((_, j) => <Star key={j} className="w-5 h-5 fill-current" />)}
+                {Array.from({ length: 5 - r.rating }).map((_, j) => <Star key={`e-${j}`} className="w-5 h-5 text-slate-200 fill-current" />)}
               </div>
               <p className="text-slate-700 text-base mb-8 leading-relaxed flex-1">
                 "{lang === "ar" ? r.textAr : r.textEn}"
               </p>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-primary font-bold text-base flex-shrink-0">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-base flex-shrink-0 ${r.color}`}>
                   {r.initials}
                 </div>
                 <div>
@@ -979,36 +995,18 @@ const Testimonials = () => {
           ))}
         </div>
 
-        {/* Dynamic Reviews from DB */}
-        {dbReviews.length > 0 && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-            {dbReviews.map((r, i) => (
-              <motion.div
-                key={`db-${r.id}`}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col"
-              >
-                <div className="flex text-amber-400 mb-5">
-                  {Array.from({ length: r.rating }).map((_, j) => <Star key={j} className="w-5 h-5 fill-current" />)}
-                  {Array.from({ length: 5 - r.rating }).map((_, j) => <Star key={`e-${j}`} className="w-5 h-5 text-slate-200 fill-current" />)}
-                </div>
-                <p className="text-slate-700 text-base mb-8 leading-relaxed flex-1">
-                  "{r.comment}"
-                </p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-base flex-shrink-0">
-                    {getInitials(r.name)}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900">{r.name}</h4>
-                    <p className="text-sm text-slate-500">{lang === "ar" ? "عميل العيادة" : "Clinic Patient"}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+        {/* Expand / Collapse button */}
+        {hasMore && (
+          <div className="text-center mt-10">
+            <button
+              onClick={() => setExpanded(prev => !prev)}
+              className="inline-flex items-center gap-2 px-8 py-3 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all duration-300"
+            >
+              {expanded
+                ? (lang === "ar" ? "عرض أقل ↑" : "Show Less ↑")
+                : (lang === "ar" ? `عرض جميع التقييمات (${allReviews.length}) ↓` : `Show All Reviews (${allReviews.length}) ↓`)
+              }
+            </button>
           </div>
         )}
       </div>
@@ -1217,9 +1215,6 @@ const Contact = () => {
                 <div>
                   <h4 className="text-white font-bold text-base mb-1">{tx("conPhone", lang)}</h4>
                   <a href={`tel:${get("phone", "+962796317293")}`} dir="ltr" className="text-slate-400 hover:text-primary transition-colors block">{get("phone", "+962 79 631 7293")}</a>
-                  <a href="tel:027250220" dir="ltr" className="text-slate-400 hover:text-primary transition-colors block mt-1">
-                    {lang === "ar" ? "هاتف أرضي: 027250220" : "Landline: 02 725 0220"}
-                  </a>
                 </div>
               </div>
               {/* Location */}
