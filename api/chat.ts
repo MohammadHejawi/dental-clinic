@@ -1,188 +1,135 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import OpenAI from "openai";
 
-const hasOpenAI =
-  !!(process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY);
-
-const openai = hasOpenAI
-  ? new OpenAI({
-      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || "https://api.openai.com/v1",
-      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY!,
-    })
+// ── Clients ───────────────────────────────────────────────────────────────────
+const gemini = process.env.GEMINI_API_KEY
+  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
   : null;
 
-const SYSTEM_AR = `أنت مساعد ذكاء اصطناعي لعيادة الدكتور طارق الهيجاوي لطب وزراعة وتجميل الأسنان في إربد، الأردن.
+const openai =
+  process.env.AI_INTEGRATIONS_OPENAI_API_KEY || process.env.OPENAI_API_KEY
+    ? new OpenAI({
+        baseURL:
+          process.env.AI_INTEGRATIONS_OPENAI_BASE_URL ||
+          "https://api.openai.com/v1",
+        apiKey:
+          process.env.AI_INTEGRATIONS_OPENAI_API_KEY ||
+          process.env.OPENAI_API_KEY!,
+      })
+    : null;
 
-معلومات العيادة:
-- الطبيب: الدكتور طارق الهيجاوي – متخصص في زراعة الأسنان وتجميلها، خبرة تزيد عن 21 عاماً
-- الموقع: إربد، الأردن
-- الهاتف وواتساب: 0796317293
-- ساعات العمل: السبت–الخميس 9ص–8م (الجمعة: إجازة)
-- فيسبوك: https://www.facebook.com/share/18gHHhErYC/
+// ── System prompts ────────────────────────────────────────────────────────────
+const CLINIC_INFO = `
+عيادة الدكتور طارق الهيجاوي لطب وزراعة وتجميل الأسنان – إربد، الأردن.
+الطبيب: دكتور طارق الهيجاوي، خبرة +21 عاماً.
+الهاتف/واتساب: 0796317293
+ساعات العمل: السبت–الخميس 9ص–8م (الجمعة: إجازة)
+الخدمات: تبييض الأسنان، زراعة الأسنان، تقويم (إنفزلاين)، تنظيف، تركيبات ثابتة (زيركون/إيماكس)، علاج عصب، ابتسامة هوليود، علاج اللثة.
+الأسعار: تختلف حسب كل حالة — ننصح بالتواصل للحصول على تقييم مجاني.
+`.trim();
 
-خدمات العيادة:
-1. تبييض الأسنان – نتائج فورية وآمنة في جلسة واحدة
-2. زراعة الأسنان – حلول دائمة بأفضل الزرعات العالمية
-3. تقويم الأسنان – معدني أو شفاف (إنفزلاين)
-4. تنظيف الأسنان – إزالة الجير والتصبغات
-5. التركيبات الثابتة – تيجان وجسور زيركون وإيماكس
-6. علاج العصب – بأحدث الأجهزة
-7. ابتسامة هوليود – قشور البورسلين والزيركون
-8. علاج أمراض اللثة
+const SYSTEM_AR = `أنت مساعد ذكاء اصطناعي ودود ومحترف لعيادة أسنان. ${CLINIC_INFO}
+- رد دائماً بالعربية الواضحة.
+- عند سؤاله عن الأسعار: أخبره أن الأسعار تختلف حسب الحالة وشجّعه على التواصل للتقييم المجاني.
+- اجعل ردودك مختصرة ومفيدة (3-5 جمل).
+- إذا سألك عن أي شيء خارج نطاق العيادة، أجب بلطف ثم أعده لموضوع العيادة.`;
 
-تعليمات:
-- رد دائماً بالعربية الفصيحة الواضحة
-- كن ودوداً ومهنياً
-- ساعد المريض في الحصول على المعلومات التي يحتاجها
-- عند سؤاله عن الأسعار: أخبره أن الأسعار تختلف حسب كل حالة وأنصحه بزيارة العيادة أو الاتصال للحصول على تقييم مجاني
-- شجّع على حجز موعد: "احجز موعدك الآن عبر الاتصال على 0796317293 أو واتساب"
-- اجعل ردودك قصيرة ومفيدة (3-5 جمل كحد أقصى إلا إذا طُلب تفصيل)`;
+const SYSTEM_EN = `You are a friendly, professional AI assistant for a dental clinic. Dr. Tareq Al-Hijawi Dental Clinic, Irbid, Jordan. Phone/WhatsApp: +962 79 631 7293. Open Sat–Thu 9AM–8PM.
+Services: whitening, implants, orthodontics (Invisalign), cleaning, crowns/bridges, root canal, Hollywood smile, gum treatment.
+- Respond in clear, friendly English.
+- For prices, explain they vary by case and recommend a free consultation.
+- Keep responses concise (3-5 sentences).`;
 
-const SYSTEM_EN = `You are an AI assistant for Dr. Tareq Al-Hijawi's Dental, Implant & Cosmetic Clinic in Irbid, Jordan.
+// ── Rule-based fallback ───────────────────────────────────────────────────────
+type Rule = { kw: string[]; reply: string };
 
-Clinic Information:
-- Doctor: Dr. Tareq Al-Hijawi – Specialist in dental implants and cosmetics, 21+ years of experience
-- Location: Irbid, Jordan
-- Phone & WhatsApp: +962 79 631 7293
-- Working Hours: Sat–Thu 9AM–8PM (Friday: closed)
-- Facebook: https://www.facebook.com/share/18gHHhErYC/
-
-Services:
-1. Teeth Whitening – Safe, instant results in one session
-2. Dental Implants – Permanent solutions with world-class implants
-3. Orthodontics – Metal or clear (Invisalign)
-4. Teeth Cleaning – Tartar & stain removal
-5. Dental Prosthetics – Zirconia & E-max crowns and bridges
-6. Root Canal Treatment – Latest technology
-7. Hollywood Smile – Porcelain & zirconia veneers
-8. Gum Disease Treatment
-
-Instructions:
-- Always respond in clear, friendly English
-- Be professional and empathetic
-- For price inquiries: explain prices vary by case and recommend a free consultation
-- Encourage booking: "Book your appointment now by calling or WhatsApp: +962 79 631 7293"
-- Keep responses concise (3-5 sentences unless detail is requested)`;
-
-type RuleEntry = { keywords: string[]; reply: string };
-
-const RULES_AR: RuleEntry[] = [
-  {
-    keywords: ["مواعيد", "ساعات", "دوام", "وقت العمل", "متى تفتح", "متى تغلق", "اوقات"],
-    reply: "ساعات عمل العيادة: السبت حتى الخميس من 9 صباحاً حتى 8 مساءً. يوم الجمعة إجازة. 📅 لحجز موعد تواصل معنا على واتساب: 0796317293",
-  },
-  {
-    keywords: ["حجز", "موعد", "احجز", "اريد موعد", "حجزت", "بدي موعد"],
-    reply: "يسعدنا خدمتك! 😊 لحجز موعد يرجى التواصل معنا عبر:\n📞 الهاتف: 0796317293\n💬 واتساب: 0796317293\nنعمل السبت–الخميس 9ص–8م.",
-  },
-  {
-    keywords: ["سعر", "تكلفة", "كم", "أسعار", "تكاليف", "بكم", "فلوس", "دينار"],
-    reply: "الأسعار تختلف حسب كل حالة ونوع العلاج. نقدم تقييماً مجانياً للكشف عن احتياجاتك. 📞 اتصل بنا على 0796317293 أو تواصل عبر واتساب للحصول على استشارة مجانية.",
-  },
-  {
-    keywords: ["زراعة", "زرعة", "implant", "زرع اسنان"],
-    reply: "عيادتنا متخصصة في زراعة الأسنان بأفضل الزرعات العالمية. الدكتور طارق الهيجاوي لديه خبرة تزيد عن 21 عاماً في هذا المجال. 🦷 للاستفسار عن الأسعار والمواعيد: 0796317293 واتساب.",
-  },
-  {
-    keywords: ["تبييض", "whitening", "أبيض", "تفتيح"],
-    reply: "نقدم خدمة تبييض الأسنان بنتائج فورية وآمنة في جلسة واحدة. 😁 للحجز تواصل معنا على 0796317293.",
-  },
-  {
-    keywords: ["تقويم", "orthodontics", "invisalign", "انفزلاين", "شفاف", "معدني"],
-    reply: "نوفر تقويم الأسنان المعدني والشفاف (إنفزلاين). يتم تحديد النوع الأنسب بعد الكشف. 📞 تواصل معنا على 0796317293 لحجز استشارة مجانية.",
-  },
-  {
-    keywords: ["هوليود", "ابتسامة هوليود", "قشور", "فينير", "veneers"],
-    reply: "نقدم ابتسامة هوليود بأحدث تقنيات قشور البورسلين والزيركون. ✨ تواصل معنا على 0796317293 لمعرفة المزيد.",
-  },
-  {
-    keywords: ["عصب", "حشو عصب", "root canal", "علاج العصب"],
-    reply: "نقدم علاج قنوات العصب بأحدث الأجهزة لضمان راحتك وسلامتك. 🦷 للحجز: 0796317293.",
-  },
-  {
-    keywords: ["تنظيف", "جير", "cleaning", "تلميع"],
-    reply: "نقدم خدمة تنظيف الأسنان وإزالة الجير والتصبغات بأحدث الأجهزة. للحجز: 0796317293 واتساب. 😊",
-  },
-  {
-    keywords: ["موقع", "عنوان", "وين", "فين", "اين", "إربد", "location", "address"],
-    reply: "العيادة موجودة في إربد، الأردن. 📍 للحصول على الموقع الدقيق تواصل معنا على واتساب: 0796317293",
-  },
-  {
-    keywords: ["الطبيب", "دكتور", "طارق", "الهيجاوي", "خبرة"],
-    reply: "الدكتور طارق الهيجاوي متخصص في طب وزراعة وتجميل الأسنان، ولديه خبرة تزيد عن 21 عاماً في خدمة المرضى. 🏆 نلتزم بأعلى معايير الجودة والدقة.",
-  },
-  {
-    keywords: ["شكرا", "شكراً", "ممتاز", "مرحبا", "اهلا", "أهلاً", "السلام"],
-    reply: "أهلاً وسهلاً! 😊 كيف يمكنني مساعدتك اليوم؟ نحن هنا لخدمتك في كل ما يخص صحة أسنانك.",
-  },
+const RULES_AR: Rule[] = [
+  { kw: ["مواعيد","ساعات","دوام","متى تفتح","متى تغلق","اوقات","وقت"],
+    reply: "ساعات عمل العيادة: السبت–الخميس 9ص–8م، الجمعة إجازة. 📅\nللحجز: واتساب 0796317293" },
+  { kw: ["حجز","موعد","احجز","بدي موعد","اريد موعد"],
+    reply: "يسعدنا خدمتك! 😊\n📞 0796317293\n💬 واتساب: 0796317293\nنعمل السبت–الخميس 9ص–8م." },
+  { kw: ["سعر","تكلفة","كم","أسعار","بكم","فلوس","دينار"],
+    reply: "الأسعار تختلف حسب كل حالة. نقدم تقييماً مجانياً! 📞 اتصل على 0796317293 أو واتساب." },
+  { kw: ["زراعة","زرعة","زرع"],
+    reply: "نتخصص في زراعة الأسنان بأفضل الزرعات العالمية. خبرة +21 عاماً. 🦷\nللاستفسار: 0796317293 واتساب." },
+  { kw: ["تبييض","أبيض","تفتيح"],
+    reply: "تبييض الأسنان بنتائج فورية في جلسة واحدة. 😁 للحجز: 0796317293." },
+  { kw: ["تقويم","انفزلاين","إنفزلاين","شفاف"],
+    reply: "نوفر التقويم المعدني والشفاف (إنفزلاين). 📞 0796317293 لاستشارة مجانية." },
+  { kw: ["هوليود","ابتسامة","قشور","فينير","porcelain"],
+    reply: "ابتسامة هوليود بقشور البورسلين والزيركون. ✨ 0796317293." },
+  { kw: ["عصب","حشو عصب"],
+    reply: "علاج قنوات العصب بأحدث الأجهزة. 🦷 للحجز: 0796317293." },
+  { kw: ["تنظيف","جير","تلميع"],
+    reply: "تنظيف الأسنان وإزالة الجير بأحدث الأجهزة. 😊 واتساب: 0796317293." },
+  { kw: ["موقع","عنوان","وين","فين","اين","إربد"],
+    reply: "العيادة في إربد، الأردن. 📍 للموقع الدقيق: واتساب 0796317293." },
+  { kw: ["دكتور","طارق","الهيجاوي","خبرة","الطبيب"],
+    reply: "د. طارق الهيجاوي متخصص في طب وزراعة وتجميل الأسنان، خبرة +21 عاماً. 🏆" },
+  { kw: ["اللثة","لثة","gum"],
+    reply: "نقدم علاج أمراض اللثة باحترافية عالية. 📞 0796317293." },
+  { kw: ["تركيبات","تاج","زيركون","ايماكس","جسر","crown"],
+    reply: "نقدم التركيبات الثابتة (تيجان وجسور زيركون وإيماكس) بأعلى جودة. 📞 0796317293." },
+  { kw: ["شكرا","شكراً","ممتاز","مرحبا","اهلا","السلام","مساء","صباح"],
+    reply: "أهلاً وسهلاً! 😊 كيف يمكنني مساعدتك في صحة أسنانك؟" },
+  { kw: ["واتساب","whatsapp","تواصل","اتصل","تلفون","رقم"],
+    reply: "يمكنك التواصل معنا عبر:\n📞 الهاتف: 0796317293\n💬 واتساب: 0796317293\nنعمل السبت–الخميس 9ص–8م. 😊" },
+  { kw: ["تخدير","مؤلم","ألم","خوف"],
+    reply: "نستخدم أحدث تقنيات التخدير الموضعي لضمان علاج مريح وخالٍ من الألم. 😊 لا تتردد في الاتصال على 0796317293." },
+  { kw: ["اطفال","طفل","طفلة","أطفال"],
+    reply: "نستقبل المرضى من جميع الأعمار بما فيهم الأطفال. 👶 للحجز: 0796317293." },
 ];
 
-const RULES_EN: RuleEntry[] = [
-  {
-    keywords: ["hours", "working hours", "open", "close", "schedule", "when"],
-    reply: "We're open Saturday to Thursday, 9AM–8PM. Friday is closed. 📅 To book an appointment, contact us on WhatsApp: +962 79 631 7293",
-  },
-  {
-    keywords: ["book", "appointment", "schedule", "reserve"],
-    reply: "We'd love to help! 😊 To book an appointment:\n📞 Phone: +962 79 631 7293\n💬 WhatsApp: +962 79 631 7293\nWe're open Sat–Thu, 9AM–8PM.",
-  },
-  {
-    keywords: ["price", "cost", "how much", "fee", "charge"],
-    reply: "Prices vary depending on each case and treatment type. We offer free consultations to assess your needs. 📞 Call or WhatsApp us at +962 79 631 7293.",
-  },
-  {
-    keywords: ["implant", "dental implant", "implants"],
-    reply: "We specialize in dental implants using world-class brands. Dr. Tareq has 21+ years of experience. 🦷 For pricing and appointments: +962 79 631 7293 (WhatsApp).",
-  },
-  {
-    keywords: ["whitening", "bleaching", "white teeth"],
-    reply: "We offer safe, instant teeth whitening results in a single session! 😁 Book via WhatsApp: +962 79 631 7293.",
-  },
-  {
-    keywords: ["braces", "orthodontic", "invisalign", "clear aligner"],
-    reply: "We offer both metal braces and clear aligners (Invisalign). The best option is determined after examination. 📞 +962 79 631 7293.",
-  },
-  {
-    keywords: ["hollywood", "veneers", "smile makeover", "porcelain"],
-    reply: "We create Hollywood smiles using the latest porcelain and zirconia veneer techniques. ✨ Contact us at +962 79 631 7293.",
-  },
-  {
-    keywords: ["root canal", "nerve", "canal"],
-    reply: "We perform root canal treatments with the latest technology for your comfort. 🦷 Book at +962 79 631 7293.",
-  },
-  {
-    keywords: ["cleaning", "scaling", "tartar"],
-    reply: "We offer professional dental cleaning and tartar removal. Book via WhatsApp: +962 79 631 7293. 😊",
-  },
-  {
-    keywords: ["location", "address", "where", "irbid"],
-    reply: "Our clinic is located in Irbid, Jordan. 📍 For the exact address, contact us on WhatsApp: +962 79 631 7293.",
-  },
-  {
-    keywords: ["doctor", "dr", "tareq", "experience"],
-    reply: "Dr. Tareq Al-Hijawi is a specialist in dental medicine, implants, and cosmetics with 21+ years of experience. 🏆 We're committed to the highest standards of care.",
-  },
-  {
-    keywords: ["hello", "hi", "thanks", "thank you", "hey"],
-    reply: "Hello! 😊 How can I help you today? We're here for all your dental health needs.",
-  },
+const RULES_EN: Rule[] = [
+  { kw: ["hours","working hours","open","close","schedule","when"],
+    reply: "Open Saturday–Thursday, 9AM–8PM. Friday closed. 📅\nWhatsApp: +962 79 631 7293" },
+  { kw: ["book","appointment","schedule","reserve"],
+    reply: "We'd love to help! 😊\n📞 +962 79 631 7293\n💬 WhatsApp: +962 79 631 7293\nOpen Sat–Thu, 9AM–8PM." },
+  { kw: ["price","cost","how much","fee","charge"],
+    reply: "Prices vary by case. Free consultations available! 📞 +962 79 631 7293." },
+  { kw: ["implant","dental implant"],
+    reply: "We specialize in dental implants with 21+ years experience. 🦷\n+962 79 631 7293 (WhatsApp)." },
+  { kw: ["whitening","bleaching","white"],
+    reply: "Safe, instant whitening in one session! 😁 Book: +962 79 631 7293." },
+  { kw: ["braces","orthodontic","invisalign","clear"],
+    reply: "Metal braces & Invisalign available. Free consultation: +962 79 631 7293." },
+  { kw: ["hollywood","veneer","smile"],
+    reply: "Hollywood smile with porcelain & zirconia veneers. ✨ +962 79 631 7293." },
+  { kw: ["root canal","nerve"],
+    reply: "Root canal with the latest technology. 🦷 Book: +962 79 631 7293." },
+  { kw: ["cleaning","scaling","tartar"],
+    reply: "Professional dental cleaning available. 😊 WhatsApp: +962 79 631 7293." },
+  { kw: ["location","address","where","irbid"],
+    reply: "Located in Irbid, Jordan. 📍 WhatsApp for directions: +962 79 631 7293." },
+  { kw: ["doctor","dr","tareq","experience"],
+    reply: "Dr. Tareq Al-Hijawi – dental specialist with 21+ years experience. 🏆" },
+  { kw: ["gum","periodontal"],
+    reply: "We treat gum disease professionally. 📞 +962 79 631 7293." },
+  { kw: ["crown","bridge","zirconia","emax"],
+    reply: "We offer Zirconia & E-max crowns and bridges. 📞 +962 79 631 7293." },
+  { kw: ["hello","hi","thanks","thank","hey","good morning","good evening"],
+    reply: "Hello! 😊 How can I help you with your dental health today?" },
+  { kw: ["whatsapp","contact","phone","number","call"],
+    reply: "📞 +962 79 631 7293\n💬 WhatsApp: +962 79 631 7293\nOpen Sat–Thu, 9AM–8PM. 😊" },
+  { kw: ["pain","hurt","scared","fear","anesthesia"],
+    reply: "We use the latest local anesthesia for a comfortable, pain-free experience. 😊 Call us: +962 79 631 7293." },
+  { kw: ["children","child","kid","kids"],
+    reply: "We welcome patients of all ages, including children! 👶 Book: +962 79 631 7293." },
 ];
 
-function ruleBasedReply(userText: string, lang: string): string {
-  const text = userText.toLowerCase();
+function ruleReply(text: string, lang: string): string {
+  const t = text.toLowerCase();
   const rules = lang === "en" ? RULES_EN : RULES_AR;
-
-  for (const rule of rules) {
-    if (rule.keywords.some((kw) => text.includes(kw))) {
-      return rule.reply;
-    }
+  for (const r of rules) {
+    if (r.kw.some((k) => t.includes(k))) return r.reply;
   }
-
   return lang === "en"
-    ? "Thank you for your question! For more details, please contact us directly:\n📞 +962 79 631 7293\n💬 WhatsApp: +962 79 631 7293\nWe're open Sat–Thu, 9AM–8PM. 😊"
-    : "شكراً لسؤالك! للحصول على مزيد من المعلومات يرجى التواصل معنا مباشرة:\n📞 0796317293\n💬 واتساب: 0796317293\nنعمل السبت–الخميس 9ص–8م. 😊";
+    ? "Thank you for your question! For more info:\n📞 +962 79 631 7293\n💬 WhatsApp: +962 79 631 7293\nOpen Sat–Thu, 9AM–8PM. 😊"
+    : "شكراً لسؤالك! للمزيد من المعلومات:\n📞 0796317293\n💬 واتساب: 0796317293\nنعمل السبت–الخميس 9ص–8م. 😊";
 }
 
+// ── Main handler ──────────────────────────────────────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST,OPTIONS");
@@ -195,26 +142,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "messages required" });
   }
 
-  const lastUserMessage = [...messages].reverse().find((m: any) => m.role === "user");
-  const userText: string = lastUserMessage?.content ?? "";
+  const lastUser = [...messages].reverse().find((m: any) => m.role === "user");
+  const userText: string = lastUser?.content ?? "";
+  const isEn = lang === "en";
 
+  // ── 1. Try Google Gemini (Vercel: set GEMINI_API_KEY) ─────────────────────
+  if (gemini) {
+    try {
+      const model = gemini.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const history = messages.slice(0, -1).map((m: any) => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }],
+      }));
+      const chat = model.startChat({
+        history,
+        systemInstruction: { parts: [{ text: isEn ? SYSTEM_EN : SYSTEM_AR }] },
+        generationConfig: { maxOutputTokens: 400 },
+      });
+      const result = await chat.sendMessage(userText);
+      const reply = result.response.text();
+      return res.json({ reply });
+    } catch (e: any) {
+      console.error("Gemini error:", e?.message);
+    }
+  }
+
+  // ── 2. Try OpenAI / Replit AI Integration ─────────────────────────────────
   if (openai) {
     try {
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         max_completion_tokens: 400,
         messages: [
-          { role: "system", content: lang === "en" ? SYSTEM_EN : SYSTEM_AR },
+          { role: "system", content: isEn ? SYSTEM_EN : SYSTEM_AR },
           ...messages.slice(-10),
         ],
       });
       const reply = completion.choices[0]?.message?.content ?? "";
       return res.json({ reply });
-    } catch (err: any) {
-      console.error("OpenAI error, falling back:", err?.message);
+    } catch (e: any) {
+      console.error("OpenAI error:", e?.message);
     }
   }
 
-  const reply = ruleBasedReply(userText, lang ?? "ar");
-  return res.json({ reply });
+  // ── 3. Rule-based fallback (always works, no API needed) ──────────────────
+  return res.json({ reply: ruleReply(userText, lang ?? "ar") });
 }
