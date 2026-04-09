@@ -24,26 +24,39 @@ const pool = process.env.DATABASE_URL
   ? new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } })
   : null;
 
-// ── Fetch clinic hours from DB ─────────────────────────────────────────────────
-async function getHours(): Promise<{ ar: string; en: string; closedAr: string; closedEn: string }> {
-  const defaults = {
-    ar: "السبت–الخميس: 9 صباحاً – 8 مساءً",
-    en: "Sat–Thu: 9:00 AM – 8:00 PM",
-    closedAr: "الجمعة: مغلق",
-    closedEn: "Friday: Closed",
+// ── Fetch clinic info from DB ──────────────────────────────────────────────────
+interface ClinicInfo {
+  hoursAr: string; hoursEn: string;
+  closedAr: string; closedEn: string;
+  addressAr: string; addressEn: string;
+  mapUrl: string;
+}
+
+async function getClinicInfo(): Promise<ClinicInfo> {
+  const defaults: ClinicInfo = {
+    hoursAr:   "السبت–الخميس: 9 صباحاً – 8 مساءً",
+    hoursEn:   "Sat–Thu: 9:00 AM – 8:00 PM",
+    closedAr:  "الجمعة: مغلق",
+    closedEn:  "Friday: Closed",
+    addressAr: "شارع الهاشمي 141، إربد، الأردن",
+    addressEn: "Al-Hashmi St. 141, Irbid, Jordan",
+    mapUrl:    "https://maps.app.goo.gl/qRD7dUhPygaNcPdt9",
   };
   if (!pool) return defaults;
   try {
     const { rows } = await pool.query(
-      `SELECT key, value FROM site_content WHERE key IN ('hours_ar','hours_en','conHoursVal_ar','conHoursVal_en','conClosed_ar','conClosed_en')`
+      `SELECT key, value FROM site_content WHERE key IN ('hours_ar','hours_en','conHoursVal_ar','conHoursVal_en','conClosed_ar','conClosed_en','conAddress_ar','conAddress_en','map_url')`
     );
     const m: Record<string, string> = {};
     rows.forEach((r: { key: string; value: string }) => { m[r.key] = r.value; });
     return {
-      ar:        m["hours_ar"]       || m["conHoursVal_ar"] || defaults.ar,
-      en:        m["hours_en"]       || m["conHoursVal_en"] || defaults.en,
+      hoursAr:   m["hours_ar"]       || m["conHoursVal_ar"] || defaults.hoursAr,
+      hoursEn:   m["hours_en"]       || m["conHoursVal_en"] || defaults.hoursEn,
       closedAr:  m["conClosed_ar"]   || defaults.closedAr,
       closedEn:  m["conClosed_en"]   || defaults.closedEn,
+      addressAr: m["conAddress_ar"]  || defaults.addressAr,
+      addressEn: m["conAddress_en"]  || defaults.addressEn,
+      mapUrl:    m["map_url"]        || defaults.mapUrl,
     };
   } catch {
     return defaults;
@@ -51,14 +64,16 @@ async function getHours(): Promise<{ ar: string; en: string; closedAr: string; c
 }
 
 // ── Build system prompts ──────────────────────────────────────────────────────
-function buildSystemAr(hours: string, closed: string) {
+function buildSystemAr(info: ClinicInfo) {
+  const { hoursAr, closedAr, addressAr, mapUrl } = info;
   return `أنت مساعد ذكاء اصطناعي ودود ومحترف لعيادة الدكتور طارق الهيجاوي لطب وزراعة وتجميل الأسنان في إربد، الأردن.
 
 معلومات العيادة:
 - الطبيب: دكتور طارق الهيجاوي، خبرة أكثر من 21 عاماً في طب الأسنان
 - الهاتف/واتساب: 0796317293
-- ساعات العمل: ${hours} | ${closed}
-- الموقع: إربد، الأردن
+- ساعات العمل: ${hoursAr} | ${closedAr}
+- العنوان: ${addressAr}
+- رابط الموقع على الخريطة: ${mapUrl}
 
 خدمات العيادة:
 1. تبييض الأسنان: تبييض آمن وفعّال بنتائج فورية في جلسة واحدة باستخدام أحدث الأجهزة
@@ -79,14 +94,16 @@ function buildSystemAr(hours: string, closed: string) {
 - لا تخترع معلومات غير موجودة في المعطيات أعلاه`;
 }
 
-function buildSystemEn(hours: string, closed: string) {
+function buildSystemEn(info: ClinicInfo) {
+  const { hoursEn, closedEn, addressEn, mapUrl } = info;
   return `You are a friendly, professional AI assistant for Dr. Tareq Al-Hijawi Dental Clinic in Irbid, Jordan.
 
 Clinic Info:
 - Doctor: Dr. Tareq Al-Hijawi, 21+ years of dental expertise
 - Phone/WhatsApp: +962 79 631 7293
-- Working Hours: ${hours} | ${closed}
-- Location: Irbid, Jordan
+- Working Hours: ${hoursEn} | ${closedEn}
+- Address: ${addressEn}
+- Google Maps: ${mapUrl}
 
 Services:
 1. Teeth Whitening: Safe, instant results in one session using latest technology
@@ -109,7 +126,8 @@ Important rules — follow strictly:
 // ── Rule-based fallback ───────────────────────────────────────────────────────
 type Rule = { kw: string[]; reply: string };
 
-function buildRulesAr(hours: string, closed: string): Rule[] {
+function buildRulesAr(info: ClinicInfo): Rule[] {
+  const { hoursAr, closedAr, addressAr, mapUrl } = info;
   return [
     {
       kw: ["خدمات","خدمة","ايش عندكم","شو عندكم","ماذا تقدم","ماذا تقدمون","ايش تعملوا","شو بتعملوا"],
@@ -117,11 +135,11 @@ function buildRulesAr(hours: string, closed: string): Rule[] {
     },
     {
       kw: ["مواعيد","ساعات","دوام","متى تفتح","متى تغلق","اوقات","وقت","دوامكم"],
-      reply: `ساعات عمل العيادة: ${hours}\n${closed} 📅\nللحجز: واتساب 0796317293`
+      reply: `ساعات عمل العيادة: ${hoursAr}\n${closedAr} 📅\nللحجز: واتساب 0796317293`
     },
     {
       kw: ["حجز","موعد","احجز","بدي موعد","اريد موعد","ابي موعد"],
-      reply: `يسعدنا خدمتك! 😊\n📞 الهاتف: 0796317293\n💬 واتساب: 0796317293\nنعمل ${hours}`
+      reply: `يسعدنا خدمتك! 😊\n📞 الهاتف: 0796317293\n💬 واتساب: 0796317293\nنعمل ${hoursAr}`
     },
     {
       kw: ["سعر","تكلفة","كم","أسعار","بكم","فلوس","دينار"],
@@ -168,8 +186,8 @@ function buildRulesAr(hours: string, closed: string): Rule[] {
       reply: "👶 نرحب بالأطفال!\n• طاقم متخصص في التعامل مع الأطفال\n• بيئة ودية ومشجعة\n• مناسب لجميع الأعمار\n\nللحجز: 0796317293 😊"
     },
     {
-      kw: ["موقع","عنوان","وين","فين","اين","إربد","مكان"],
-      reply: "📍 العيادة في إربد، الأردن\nللموقع التفصيلي والتوجيه: تواصل عبر واتساب 0796317293"
+      kw: ["موقع","عنوان","وين","فين","اين","إربد","مكان","خريطة","قوقل","كيف اوصل","كيف أوصل"],
+      reply: `📍 عنوان العيادة:\n${addressAr}\n\n🗺️ الموقع على الخريطة:\n${mapUrl}\n\nللتوجيه والاستفسار: واتساب 0796317293`
     },
     {
       kw: ["دكتور","طارق","الهيجاوي","خبرة","الطبيب","الدكتور"],
@@ -186,7 +204,8 @@ function buildRulesAr(hours: string, closed: string): Rule[] {
   ];
 }
 
-function buildRulesEn(hours: string, closed: string): Rule[] {
+function buildRulesEn(info: ClinicInfo): Rule[] {
+  const { hoursEn, closedEn, addressEn, mapUrl } = info;
   return [
     {
       kw: ["services","what do you offer","what you do","treatments"],
@@ -194,11 +213,11 @@ function buildRulesEn(hours: string, closed: string): Rule[] {
     },
     {
       kw: ["hours","working hours","open","close","schedule","when"],
-      reply: `Working Hours: ${hours}\n${closed} 📅\nWhatsApp: +962 79 631 7293`
+      reply: `Working Hours: ${hoursEn}\n${closedEn} 📅\nWhatsApp: +962 79 631 7293`
     },
     {
       kw: ["book","appointment","schedule","reserve"],
-      reply: `We'd love to help! 😊\n📞 +962 79 631 7293\n💬 WhatsApp: +962 79 631 7293\nOpen ${hours}`
+      reply: `We'd love to help! 😊\n📞 +962 79 631 7293\n💬 WhatsApp: +962 79 631 7293\nOpen ${hoursEn}`
     },
     {
       kw: ["price","cost","how much","fee","charge"],
@@ -245,8 +264,8 @@ function buildRulesEn(hours: string, closed: string): Rule[] {
       reply: "👶 Children are welcome!\n• Team experienced with young patients\n• Friendly, encouraging environment\n\nBook: +962 79 631 7293 😊"
     },
     {
-      kw: ["location","address","where","irbid"],
-      reply: "📍 Located in Irbid, Jordan\nFor directions: WhatsApp +962 79 631 7293"
+      kw: ["location","address","where","irbid","directions","map","google map","how to get"],
+      reply: `📍 Clinic Address:\n${addressEn}\n\n🗺️ Google Maps:\n${mapUrl}\n\nFor assistance: WhatsApp +962 79 631 7293`
     },
     {
       kw: ["doctor","dr","tareq","experience"],
@@ -290,12 +309,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const userText: string = lastUser?.content ?? "";
   const isEn = lang === "en";
 
-  // Fetch live hours from DB
-  const h = await getHours();
-  const systemAr = buildSystemAr(h.ar, h.closedAr);
-  const systemEn = buildSystemEn(h.en, h.closedEn);
-  const rulesAr  = buildRulesAr(h.ar, h.closedAr);
-  const rulesEn  = buildRulesEn(h.en, h.closedEn);
+  // Fetch live clinic info from DB
+  const info = await getClinicInfo();
+  const systemAr = buildSystemAr(info);
+  const systemEn = buildSystemEn(info);
+  const rulesAr  = buildRulesAr(info);
+  const rulesEn  = buildRulesEn(info);
 
   // ── 1. Try Google Gemini ──────────────────────────────────────────────────
   if (gemini) {
