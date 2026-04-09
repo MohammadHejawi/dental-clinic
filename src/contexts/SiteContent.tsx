@@ -21,7 +21,7 @@ export function SiteContentProvider({ children }: { children: React.ReactNode })
 
   const fetchContent = async () => {
     try {
-      const res = await fetch("/api/content");
+      const res = await fetch("/api/content", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         if (data.success) setContent(data.content);
@@ -31,7 +31,13 @@ export function SiteContentProvider({ children }: { children: React.ReactNode })
     }
   };
 
-  useEffect(() => { fetchContent(); }, []);
+  useEffect(() => {
+    fetchContent();
+    // Re-fetch when the tab becomes visible again (e.g. user switches from admin tab)
+    const onVisibility = () => { if (document.visibilityState === "visible") fetchContent(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   const get = (key: string, fallback: string) => content[key] ?? fallback;
 
