@@ -599,9 +599,9 @@ const Hero = () => {
           {/* Stats */}
           <motion.div variants={fadeInUp} className="inline-grid grid-cols-3 divide-x divide-white/20 rtl:divide-x-reverse bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl overflow-hidden">
             {[
-              { num: get("stat1_num", "+21"), labelAr: "عاماً خبرة", labelEn: "Years Exp." },
-              { num: get("stat2_num", "+3000"), labelAr: "مريض سعيد", labelEn: "Patients" },
-              { num: get("stat3_num", "8"), labelAr: "خدمة طبية", labelEn: "Services" },
+              { num: get("stat1_num", "+21"),    labelAr: get("stat1Label_ar","عاماً خبرة"),  labelEn: get("stat1Label_en","Years Exp.") },
+              { num: get("stat2_num", "+3000"),  labelAr: get("stat2Label_ar","مريض سعيد"),  labelEn: get("stat2Label_en","Patients") },
+              { num: get("stat3_num", "8"),      labelAr: get("stat3Label_ar","خدمة طبية"),  labelEn: get("stat3Label_en","Services") },
             ].map((s, i) => (
               <div key={i} className="text-center px-7 py-4">
                 <p className="text-3xl md:text-4xl font-black text-amber-300 drop-shadow">{s.num}</p>
@@ -756,9 +756,9 @@ const About = () => {
             {/* Mini stats */}
             <motion.div variants={fadeInUp} className="grid grid-cols-3 gap-4 mb-10 p-5 bg-slate-50 rounded-2xl border border-slate-100">
               {[
-                { num: "+21", labelAr: "عاماً خبرة", labelEn: "Years Exp." },
-                { num: "+3K", labelAr: "مريض", labelEn: "Patients" },
-                { num: "100%", labelAr: "رضا المرضى", labelEn: "Satisfaction" },
+                { num: get("stat1_num",  "+21"),  labelAr: get("stat1Label_ar", "عاماً خبرة"),  labelEn: get("stat1Label_en", "Years Exp.") },
+                { num: get("stat2_num",  "+3K"),  labelAr: get("stat2Label_ar", "مريض"),        labelEn: get("stat2Label_en", "Patients") },
+                { num: get("abt_stat3", "100%"),  labelAr: get("abt_stat3Label_ar", "رضا المرضى"), labelEn: get("abt_stat3Label_en", "Satisfaction") },
               ].map((s, i) => (
                 <div key={i} className={cn("text-center", i > 0 && (lang === "ar" ? "border-r border-slate-200" : "border-l border-slate-200"))}>
                   <p className="text-2xl font-black text-primary">{s.num}</p>
@@ -2130,11 +2130,12 @@ const FloatingButtons = () => {
 const TrustBar = () => {
   const { lang } = useLang();
   const isAr = lang === "ar";
+  const { get } = useSiteContent();
   const stats = [
-    { num: "+21", labelAr: "عاماً من الخبرة", labelEn: "Years of Experience", icon: Award },
-    { num: "+3,000", labelAr: "مريض سعيد", labelEn: "Happy Patients", icon: Heart },
-    { num: "8", labelAr: "خدمات متكاملة", labelEn: "Dental Services", icon: Smile },
-    { num: "5.0★", labelAr: "تقييم المرضى", labelEn: "Patient Rating", icon: Star },
+    { num: get("stat1_num", "+21"),   labelAr: get("stat1Label_ar", "عاماً من الخبرة"),  labelEn: get("stat1Label_en", "Years of Experience"), icon: Award },
+    { num: get("stat2_num", "+3,000"),labelAr: get("stat2Label_ar", "مريض سعيد"),        labelEn: get("stat2Label_en", "Happy Patients"),       icon: Heart },
+    { num: get("stat3_num", "8"),     labelAr: get("stat3Label_ar", "خدمات متكاملة"),    labelEn: get("stat3Label_en", "Dental Services"),       icon: Smile },
+    { num: get("stat4_num", "5.0★"), labelAr: get("stat4Label_ar", "تقييم المرضى"),     labelEn: get("stat4Label_en", "Patient Rating"),        icon: Star },
   ];
   return (
     <section className="bg-[#0d2341] py-10">

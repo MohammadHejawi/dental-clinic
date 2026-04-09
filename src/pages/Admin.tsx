@@ -971,6 +971,62 @@ export default function Admin() {
               </div>
             </div>
 
+            {/* Stat 4 */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-l from-purple-50 to-white px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+                <span className="text-2xl">⭐</span>
+                <p className="font-bold text-slate-800">الإحصائية الرابعة — تقييم المرضى (الشريط الكحلي)</p>
+              </div>
+              <div className="px-6 py-5 space-y-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-bold text-slate-600">الرقم / القيمة</label>
+                  <input dir="ltr"
+                    value={fields["stat4_num"] ?? get("stat4_num", "5.0★")}
+                    onChange={e => setField("stat4_num", e.target.value)}
+                    placeholder="مثال: 5.0★"
+                    className="w-40 px-4 py-3 rounded-xl border border-slate-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none transition text-slate-800 text-2xl font-black text-center" />
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">التسمية — عربي</label>
+                    <input dir="rtl" value={fields["stat4Label_ar"] ?? get("stat4Label_ar", "تقييم المرضى")} onChange={e => setField("stat4Label_ar", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none transition text-slate-800 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">التسمية — English</label>
+                    <input dir="ltr" value={fields["stat4Label_en"] ?? get("stat4Label_en", "Patient Rating")} onChange={e => setField("stat4Label_en", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none transition text-slate-800 text-sm" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stat about — satisfaction */}
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-l from-teal-50 to-white px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+                <span className="text-2xl">💯</span>
+                <p className="font-bold text-slate-800">نسبة الرضا — قسم عن الطبيب</p>
+              </div>
+              <div className="px-6 py-5 space-y-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-bold text-slate-600">الرقم / القيمة</label>
+                  <input dir="ltr"
+                    value={fields["abt_stat3"] ?? get("abt_stat3", "100%")}
+                    onChange={e => setField("abt_stat3", e.target.value)}
+                    placeholder="مثال: 100%"
+                    className="w-40 px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-100 outline-none transition text-slate-800 text-2xl font-black text-center" />
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">التسمية — عربي</label>
+                    <input dir="rtl" value={fields["abt_stat3Label_ar"] ?? get("abt_stat3Label_ar", "رضا المرضى")} onChange={e => setField("abt_stat3Label_ar", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-100 outline-none transition text-slate-800 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">التسمية — English</label>
+                    <input dir="ltr" value={fields["abt_stat3Label_en"] ?? get("abt_stat3Label_en", "Satisfaction")} onChange={e => setField("abt_stat3Label_en", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-teal-400 focus:ring-2 focus:ring-teal-100 outline-none transition text-slate-800 text-sm" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Save */}
             <button
               onClick={async () => {
@@ -1029,12 +1085,21 @@ export default function Admin() {
             {
               id: "stats", title: "🔢 الإحصائيات والأرقام (البانر الرئيسي)", color: "orange",
               fields: [
-                { key: "stat1_num",  label: "الرقم الأول (مثال: 15+)",    single: true },
-                { key: "stat1Label", label: "تسمية الإحصائية الأولى" },
-                { key: "stat2_num",  label: "الرقم الثاني (مثال: 5000+)", single: true },
-                { key: "stat2Label", label: "تسمية الإحصائية الثانية" },
-                { key: "stat3_num",  label: "الرقم الثالث (مثال: 8)",      single: true },
-                { key: "stat3Label", label: "تسمية الإحصائية الثالثة" },
+                { key: "stat1_num",      label: "الرقم الأول — سنوات الخبرة (مثال: +21)",   single: true },
+                { key: "stat1Label_ar",  label: "تسمية الأولى — عربي" },
+                { key: "stat1Label_en",  label: "تسمية الأولى — English", single: true },
+                { key: "stat2_num",      label: "الرقم الثاني — عدد المرضى (مثال: +5000)", single: true },
+                { key: "stat2Label_ar",  label: "تسمية الثانية — عربي" },
+                { key: "stat2Label_en",  label: "تسمية الثانية — English", single: true },
+                { key: "stat3_num",      label: "الرقم الثالث — عدد الخدمات (مثال: 8)",    single: true },
+                { key: "stat3Label_ar",  label: "تسمية الثالثة — عربي" },
+                { key: "stat3Label_en",  label: "تسمية الثالثة — English", single: true },
+                { key: "stat4_num",      label: "الرقم الرابع — التقييم (مثال: 5.0★)",     single: true },
+                { key: "stat4Label_ar",  label: "تسمية الرابعة — عربي" },
+                { key: "stat4Label_en",  label: "تسمية الرابعة — English", single: true },
+                { key: "abt_stat3",      label: "نسبة الرضا — قسم عن الطبيب (مثال: 100%)", single: true },
+                { key: "abt_stat3Label_ar", label: "تسمية الرضا — عربي" },
+                { key: "abt_stat3Label_en", label: "تسمية الرضا — English", single: true },
               ],
             },
             {
