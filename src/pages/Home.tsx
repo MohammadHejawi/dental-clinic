@@ -356,9 +356,16 @@ const stagger = {
 };
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
-const Navbar = () => {
+const Navbar = ({
+  showAnnounce,
+  onDismissAnnounce,
+}: {
+  showAnnounce: boolean;
+  onDismissAnnounce: () => void;
+}) => {
   const { lang, setLang } = useLang();
   const tx = useTx();
+  const { get } = useSiteContent();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -377,15 +384,52 @@ const Navbar = () => {
     { key: "navContact", href: "#contact" },
   ] as const;
 
+  const badge = get(`announce_badge_ar`, "عرض خاص");
+  const text  = get(`announce_text_ar`,  "احجز موعد اليوم واستفد من استشارة مجانية مع الدكتور طارق!");
+  const btn   = get(`announce_btn_ar`,   "احجز الآن");
+
   return (
-    <header
-      className={cn(
-        "fixed top-0 w-full z-50 transition-all duration-300",
+    <header className="fixed top-0 w-full z-50">
+      {/* ── Announcement Strip ── */}
+      <AnimatePresence>
+        {showAnnounce && (
+          <motion.div
+            key="ann"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-gradient-to-r from-amber-400 via-amber-500 to-orange-400 relative overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-1.5 max-w-7xl mx-auto gap-3">
+                <div className="flex items-center gap-2.5 flex-1 justify-center flex-wrap min-w-0">
+                  <span className="inline-flex items-center gap-1 bg-white/25 text-white text-[11px] font-black px-2 py-0.5 rounded-full border border-white/30 shrink-0">
+                    <Sparkles className="w-2.5 h-2.5" />{badge}
+                  </span>
+                  <span className="text-xs font-medium text-white/95 text-center leading-snug">{text}</span>
+                  <a href="#contact"
+                    className="inline-flex items-center gap-1 bg-white text-amber-600 text-[11px] font-black px-3 py-1 rounded-full shadow-sm hover:bg-amber-50 transition-all shrink-0">
+                    <Phone className="w-2.5 h-2.5" />{btn}
+                  </a>
+                </div>
+                <button onClick={onDismissAnnounce}
+                  className="w-5 h-5 rounded-full bg-white/20 hover:bg-white/35 transition-colors flex items-center justify-center shrink-0">
+                  <X className="w-3 h-3 text-white" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Main Navbar ── */}
+      <div className={cn(
+        "transition-all duration-300",
         scrolled
           ? "bg-white/90 backdrop-blur-xl border-b border-slate-100 shadow-sm py-3"
           : "bg-transparent py-5"
-      )}
-    >
+      )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         {/* Logo */}
         <a href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
@@ -483,6 +527,7 @@ const Navbar = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>{/* end Main Navbar div */}
     </header>
   );
 };
@@ -1482,26 +1527,36 @@ const AnnouncementBar = ({ onDismiss }: { onDismiss: () => void }) => {
   const btn   = get(`announce_btn_${lang}`,   tx("announceBtn",   lang));
 
   return (
-    <div className="bg-gradient-to-r from-[#1a3a5c] via-[#1e5799] to-[#1a3a5c] text-white text-sm py-2 px-4 flex items-center justify-between gap-2 relative z-50">
-      <div className="flex items-center gap-2 flex-1 justify-center flex-wrap">
-        <span className="bg-[#3b82f6] text-white text-xs font-bold px-2 py-0.5 rounded-full">
-          {badge}
-        </span>
-        <span className="text-white/90">{text}</span>
-        <a
-          href="#contact"
-          className="bg-white text-[#1e5799] text-xs font-bold px-3 py-1 rounded-full hover:bg-blue-50 transition-colors shrink-0"
+    <div className="bg-gradient-to-r from-amber-400 via-amber-500 to-orange-400 text-white relative overflow-hidden">
+      {/* shine overlay */}
+      <div className="absolute inset-0 bg-white/10 skew-x-12 -translate-x-full pointer-events-none" />
+      <div className="flex items-center justify-between px-4 py-2 max-w-7xl mx-auto gap-3">
+        <div className="flex items-center gap-3 flex-1 justify-center flex-wrap min-w-0">
+          {/* badge */}
+          <span className="inline-flex items-center gap-1 bg-white/25 backdrop-blur-sm text-white text-[11px] font-black px-2.5 py-0.5 rounded-full border border-white/30 shrink-0">
+            <Sparkles className="w-3 h-3" />
+            {badge}
+          </span>
+          {/* text */}
+          <span className="text-sm font-medium text-white/95 text-center leading-tight">{text}</span>
+          {/* CTA button */}
+          <a
+            href="#contact"
+            className="inline-flex items-center gap-1.5 bg-white text-amber-600 text-xs font-black px-4 py-1.5 rounded-full shadow-sm hover:bg-amber-50 transition-all shrink-0 border border-white/80"
+          >
+            <Phone className="w-3 h-3" />
+            {btn}
+          </a>
+        </div>
+        {/* close */}
+        <button
+          onClick={onDismiss}
+          className="w-6 h-6 rounded-full bg-white/20 hover:bg-white/35 transition-colors flex items-center justify-center shrink-0"
+          aria-label="close"
         >
-          {btn}
-        </a>
+          <X className="w-3.5 h-3.5 text-white" />
+        </button>
       </div>
-      <button
-        onClick={onDismiss}
-        className="text-white/60 hover:text-white transition-colors shrink-0 ms-2"
-        aria-label="close"
-      >
-        <X className="w-4 h-4" />
-      </button>
     </div>
   );
 };
@@ -1689,20 +1744,10 @@ export default function Home() {
   return (
     <LangContext.Provider value={{ lang, setLang }}>
       <div className={cn("min-h-screen", lang === "en" ? "font-[Inter]" : "")}>
-        <AnimatePresence>
-          {showAnnounce && announceEnabled && (
-            <motion.div
-              key="announce"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <AnnouncementBar onDismiss={() => setShowAnnounce(false)} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <Navbar />
+        <Navbar
+          showAnnounce={showAnnounce && announceEnabled}
+          onDismissAnnounce={() => setShowAnnounce(false)}
+        />
         <main>
           <Hero />
           <Services />

@@ -1615,13 +1615,13 @@ export default function Admin() {
             {/* Preview */}
             <div className="rounded-2xl overflow-hidden border border-slate-200">
               <p className="text-xs text-slate-400 px-4 pt-3 pb-1 font-semibold">معاينة مباشرة:</p>
-              <div className="bg-gradient-to-r from-[#1a3a5c] via-[#1e5799] to-[#1a3a5c] text-white text-sm py-2 px-4 flex items-center justify-center gap-2 flex-wrap">
-                <span className="bg-[#3b82f6] text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                  {fields["announce_badge_ar"] || get("announce_badge_ar", "عرض خاص")}
+              <div className="bg-gradient-to-r from-amber-400 via-amber-500 to-orange-400 text-white py-2 px-4 flex items-center justify-center gap-3 flex-wrap">
+                <span className="inline-flex items-center gap-1 bg-white/25 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full border border-white/30">
+                  ✦ {fields["announce_badge_ar"] || get("announce_badge_ar", "عرض خاص")}
                 </span>
-                <span className="text-white/90">{fields["announce_text_ar"] || get("announce_text_ar", "احجز موعد واستفد من استشارة مجانية!")}</span>
-                <span className="bg-white text-[#1e5799] text-xs font-bold px-3 py-1 rounded-full">
-                  {fields["announce_btn_ar"] || get("announce_btn_ar", "احجز الآن")}
+                <span className="text-sm font-medium text-white/95">{fields["announce_text_ar"] || get("announce_text_ar", "احجز موعد واستفد من استشارة مجانية!")}</span>
+                <span className="bg-white text-amber-600 text-xs font-black px-4 py-1.5 rounded-full shadow-sm">
+                  📞 {fields["announce_btn_ar"] || get("announce_btn_ar", "احجز الآن")}
                 </span>
               </div>
             </div>
